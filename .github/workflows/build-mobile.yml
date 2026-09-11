@@ -55,12 +55,12 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           mkdir -p dist-assets
-          find android/app/build/outputs/apk -name "*.apk" -exec cp {} "dist-assets/Mori-v${VERSION}-Android.apk" \;
+          find android/app/build/outputs/apk -name "*.apk" -exec cp {} "dist-assets/AstroStar-v${VERSION}-Android.apk" \;
 
       - name: Upload Android Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Mori-Android-APK
+          name: AstroStar-Android-APK
           path: dist-assets/*.apk
 
       - name: Upload Release Asset (Android)
@@ -92,16 +92,16 @@ jobs:
       - name: Build Unsigned iOS IPA
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release -sdk iphoneos -archivePath build/Mori.xcarchive archive CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release -sdk iphoneos -archivePath build/AstroStar.xcarchive archive CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
           mkdir -p Payload
-          cp -r build/Mori.xcarchive/Products/Applications/App.app Payload/
+          cp -r build/AstroStar.xcarchive/Products/Applications/App.app Payload/
           mkdir -p dist-assets
-          zip -r "dist-assets/Mori-v${VERSION}-iOS-Unsigned.ipa" Payload
+          zip -r "dist-assets/AstroStar-v${VERSION}-iOS-Unsigned.ipa" Payload
 
       - name: Upload iOS Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Mori-iOS-Unsigned-IPA
+          name: AstroStar-iOS-Unsigned-IPA
           path: dist-assets/*.ipa
 
       - name: Upload Release Asset (iOS)
