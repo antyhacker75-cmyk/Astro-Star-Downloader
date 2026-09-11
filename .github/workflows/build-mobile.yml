@@ -39,10 +39,10 @@ jobs:
       - name: Generate Release Keystore
         run: |
           if [ ! -f android/app/release.keystore ]; then
-            keytool -genkey -v -keystore android/app/release.keystore -alias mori \
+            keytool -genkey -v -keystore android/app/release.keystore -alias astrostar \
               -keyalg RSA -keysize 2048 -validity 10000 \
-              -storepass android123 -keypass android123 \
-              -dname "CN=Mori, OU=Development, O=MoriApp, L=Unknown, ST=Unknown, C=ID"
+              -storepass astrostar123 -keypass astrostar123 \
+              -dname "CN=AstroStar, OU=Development, O=AstroStarApp, L=Unknown, ST=Unknown, C=PH"
           fi
 
       - name: Build Android APK
