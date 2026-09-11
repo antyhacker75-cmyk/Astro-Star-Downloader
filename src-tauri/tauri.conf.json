@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Mori",
+  "productName": "Astro Star",
   "version": "4.3.0",
-  "identifier": "com.mori.downloader",
+  "identifier": "com.astrostar.downloader",
   "build": {
     "frontendDist": "../public"
   },
@@ -10,7 +10,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Mori",
+        "title": "Astro Star",
         "width": 420,
         "height": 780,
         "minWidth": 360,
