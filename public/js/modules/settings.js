@@ -1310,16 +1310,15 @@ wipeDataBtn?.addEventListener("click", () => {
 reportBugBtn?.addEventListener("click", () => {
   const deviceInfo = `Model: ${navigator.userAgent}\nPlatform: ${platformVal?.textContent || "Unknown"}\nVersion: ${APP_VERSION}`;
   const text = encodeURIComponent(
-    `Hi coflyn, I found a bug in AstroStar App:\n\n[BUG DESCRIPTION HERE]\n\n---\nDevice Info:\n${deviceInfo}`,
+    `Hi Astro Star Renz, I found a bug in AstroStar App:\n\n[BUG DESCRIPTION HERE]\n\n---\nDevice Info:\n${deviceInfo}`,
   );
-  const whatsappUrl = `whatsapp://send?phone=6285194858996&text=${text}`;
-  const whatsappWebUrl = `https://wa.me/6285194858996?text=${text}`;
-  showToast(translations[currentLang]["label-opening-wa"]);
-  if (window.Capacitor?.isNativePlatform?.()) {
-    openExternalUrl(whatsappUrl);
-  } else {
-    openExternalUrl(whatsappWebUrl);
-  }
+  const telegramUrl = `https://t.me/r3nz75?text=${text}`;
+  
+  // Show toast to indicate Telegram is opening
+  showToast(translations[currentLang]["label-opening-tg"] || "Opening Telegram...");
+  
+  // openExternalUrl handles native and web fallbacks automatically
+  openExternalUrl(telegramUrl);
 });
 
 // Settings Sub-page Navigation Handler
