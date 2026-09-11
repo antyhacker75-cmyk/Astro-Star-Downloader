@@ -9,10 +9,10 @@ let width = window.innerWidth;
 let height = window.innerHeight;
 let dpr = window.devicePixelRatio || 1;
 
-let isEnabled = localStorage.getItem("mori_bg_animated") === "true";
-let currentShape = localStorage.getItem("mori_bg_shape") || "stars";
+let isEnabled = localStorage.getItem("astrostar_bg_animated") === "true";
+let currentShape = localStorage.getItem("astrostar_bg_shape") || "stars";
 let currentBrightness = parseInt(
-  localStorage.getItem("mori_bg_brightness") || "150",
+  localStorage.getItem("astrostar_bg_brightness") || "150",
   10,
 );
 
@@ -377,7 +377,7 @@ export function stopAnimation() {
 
 export function setAnimatedBgEnabled(enabled) {
   isEnabled = !!enabled;
-  localStorage.setItem("mori_bg_animated", isEnabled ? "true" : "false");
+  localStorage.setItem("astrostar_bg_animated", isEnabled ? "true" : "false");
   if (isEnabled) {
     startAnimation();
   } else {
@@ -387,13 +387,13 @@ export function setAnimatedBgEnabled(enabled) {
 
 export function setAnimatedBgShape(shape) {
   currentShape = shape;
-  localStorage.setItem("mori_bg_shape", shape);
+  localStorage.setItem("astrostar_bg_shape", shape);
   initElements();
 }
 
 export function setAnimatedBgBrightness(value) {
   currentBrightness = Math.max(20, Math.min(200, parseInt(value, 10) || 100));
-  localStorage.setItem("mori_bg_brightness", currentBrightness.toString());
+  localStorage.setItem("astrostar_bg_brightness", currentBrightness.toString());
 }
 
 export function initBgAnimation() {

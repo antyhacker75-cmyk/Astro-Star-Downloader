@@ -11,14 +11,14 @@ export async function hashPin(pin) {
   if (window.crypto?.subtle) {
     const buf = await crypto.subtle.digest(
       "SHA-256",
-      new TextEncoder().encode("mori:" + pin),
+      new TextEncoder().encode("astrostar:" + pin),
     );
     return Array.from(new Uint8Array(buf))
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
   }
   let h = 0x811c9dc5;
-  const s = "mori:" + pin;
+  const s = "astrostar:" + pin;
   for (let i = 0; i < s.length; i++) {
     h ^= s.charCodeAt(i);
     h = Math.imul(h, 0x01000193) >>> 0;
@@ -38,7 +38,7 @@ export async function verifyBiometric(
         await NativeBiometric.verifyIdentity({
           reason:
             translations[currentLang][reasonLabel] || "Authentication required",
-          title: "Mori Privacy Lock",
+          title: "AstroStar Privacy Lock",
           subtitle: "",
           description: "",
         });
@@ -106,14 +106,14 @@ export function showPinModal(mode = "verify", currentLang = "en") {
     };
 
     const processPin = async () => {
-      const savedPin = localStorage.getItem("mori_pin");
+      const savedPin = localStorage.getItem("astrostar_pin");
       const langDict = translations[currentLang] || translations["en"];
 
       if (step === "verify") {
         const hashedInput = await hashPin(currentInput);
         if (currentInput === savedPin || hashedInput === savedPin) {
           if (savedPin === currentInput) {
-            localStorage.setItem("mori_pin", hashedInput);
+            localStorage.setItem("astrostar_pin", hashedInput);
           }
           closePinModal(true);
         } else {
@@ -130,9 +130,9 @@ export function showPinModal(mode = "verify", currentLang = "en") {
       } else if (step === "confirm") {
         if (currentInput === firstPin) {
           const hashed = await hashPin(currentInput);
-          localStorage.setItem("mori_pin", hashed);
-          localStorage.setItem("mori_privacy_lock", "true");
-          localStorage.setItem("mori_lock_type", "pin");
+          localStorage.setItem("astrostar_pin", hashed);
+          localStorage.setItem("astrostar_privacy_lock", "true");
+          localStorage.setItem("astrostar_lock_type", "pin");
           showToast(langDict["toast-pin-saved"] || "PIN saved successfully");
           closePinModal(true);
         } else {
@@ -210,9 +210,9 @@ export async function verifyLock(
   reasonLabel = "label-biometric-reason",
   currentLang = "en",
 ) {
-  const lockType = localStorage.getItem("mori_lock_type") || "none";
+  const lockType = localStorage.getItem("astrostar_lock_type") || "none";
   if (lockType === "pin") {
-    const hasPin = !!localStorage.getItem("mori_pin");
+    const hasPin = !!localStorage.getItem("astrostar_pin");
     if (!hasPin) {
       return await showPinModal("setup", currentLang);
     }
@@ -230,8 +230,8 @@ export function initAuthListeners(currentLang = "en") {
   const lockTypeText = document.getElementById("lockTypeText");
 
   const isPrivacyOnInitial =
-    localStorage.getItem("mori_privacy_lock") === "true";
-  const initialLockType = localStorage.getItem("mori_lock_type") || "none";
+    localStorage.getItem("astrostar_privacy_lock") === "true";
+  const initialLockType = localStorage.getItem("astrostar_lock_type") || "none";
 
   if (isPrivacyOnInitial && initialLockType !== "none") {
     setHistoryUnlocked(false);
@@ -245,7 +245,7 @@ export function initAuthListeners(currentLang = "en") {
     privacyLockToggle.checked = isPrivacyOnInitial;
     privacyLockToggle.addEventListener("change", async (e) => {
       const isChecked = e.target.checked;
-      const currentLockType = localStorage.getItem("mori_lock_type") || "none";
+      const currentLockType = localStorage.getItem("astrostar_lock_type") || "none";
 
       if (!isChecked && currentLockType !== "none") {
         const verified = await verifyLock(
@@ -258,14 +258,14 @@ export function initAuthListeners(currentLang = "en") {
         }
       }
 
-      localStorage.setItem("mori_privacy_lock", isChecked ? "true" : "false");
+      localStorage.setItem("astrostar_privacy_lock", isChecked ? "true" : "false");
       if (isChecked) {
         setHistoryUnlocked(false);
         setSettingsUnlocked(false);
         if (currentLockType === "none") {
-          const hasPin = !!localStorage.getItem("mori_pin");
+          const hasPin = !!localStorage.getItem("astrostar_pin");
           const defaultType = hasPin ? "pin" : "biometric";
-          localStorage.setItem("mori_lock_type", defaultType);
+          localStorage.setItem("astrostar_lock_type", defaultType);
           if (lockTypeText) {
             lockTypeText.textContent =
               translations[currentLang][`lock-type-${defaultType}`] ||
@@ -287,7 +287,7 @@ export function initAuthListeners(currentLang = "en") {
   const setPinBtn = document.getElementById("setPinBtn");
   if (setPinBtn) {
     setPinBtn.addEventListener("click", async () => {
-      const hasPin = !!localStorage.getItem("mori_pin");
+      const hasPin = !!localStorage.getItem("astrostar_pin");
       if (hasPin) {
         const verified = await showPinModal("verify", currentLang);
         if (!verified) return;
@@ -301,13 +301,13 @@ export function initAuthListeners(currentLang = "en") {
     if (!isNative && lockTypeMenu) {
       const bioItem = lockTypeMenu.querySelector('[data-value="biometric"]');
       if (bioItem) bioItem.style.display = "none";
-      if (localStorage.getItem("mori_lock_type") === "biometric") {
-        const hasPin = !!localStorage.getItem("mori_pin");
-        localStorage.setItem("mori_lock_type", hasPin ? "pin" : "none");
+      if (localStorage.getItem("astrostar_lock_type") === "biometric") {
+        const hasPin = !!localStorage.getItem("astrostar_pin");
+        localStorage.setItem("astrostar_lock_type", hasPin ? "pin" : "none");
       }
     }
 
-    const currentLock = localStorage.getItem("mori_lock_type") || "none";
+    const currentLock = localStorage.getItem("astrostar_lock_type") || "none";
     if (lockTypeText) {
       lockTypeText.textContent =
         translations[currentLang][`lock-type-${currentLock}`] || currentLock;
@@ -325,7 +325,7 @@ export function initAuthListeners(currentLang = "en") {
     lockTypeMenu?.querySelectorAll(".dropdown-item").forEach((item) => {
       item.addEventListener("click", async () => {
         const type = item.getAttribute("data-value");
-        const currentType = localStorage.getItem("mori_lock_type") || "none";
+        const currentType = localStorage.getItem("astrostar_lock_type") || "none";
 
         if (type === currentType) return;
 
@@ -338,23 +338,23 @@ export function initAuthListeners(currentLang = "en") {
         }
 
         if (type === "pin") {
-          const hasPin = !!localStorage.getItem("mori_pin");
+          const hasPin = !!localStorage.getItem("astrostar_pin");
           if (!hasPin) {
             const setupSuccess = await showPinModal("setup", currentLang);
             if (!setupSuccess) return;
           }
         }
 
-        localStorage.setItem("mori_lock_type", type);
+        localStorage.setItem("astrostar_lock_type", type);
         if (lockTypeText) lockTypeText.textContent = item.textContent;
 
         if (type !== "none") {
-          localStorage.setItem("mori_privacy_lock", "true");
+          localStorage.setItem("astrostar_privacy_lock", "true");
           if (privacyLockToggle) privacyLockToggle.checked = true;
           setHistoryUnlocked(false);
           setSettingsUnlocked(false);
         } else {
-          localStorage.setItem("mori_privacy_lock", "false");
+          localStorage.setItem("astrostar_privacy_lock", "false");
           if (privacyLockToggle) privacyLockToggle.checked = false;
           setHistoryUnlocked(true);
           setSettingsUnlocked(true);
@@ -371,7 +371,7 @@ export function initAuthListeners(currentLang = "en") {
   }
 
   const handleAutoLock = () => {
-    if (localStorage.getItem("mori_privacy_lock") === "true") {
+    if (localStorage.getItem("astrostar_privacy_lock") === "true") {
       setHistoryUnlocked(false);
       setSettingsUnlocked(false);
     }

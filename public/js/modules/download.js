@@ -91,7 +91,7 @@ async function enforceNetworkGuards() {
   if (!(await checkWifiOnlyGuard())) return false;
 
   const isCellularWarning =
-    localStorage.getItem("mori_cellular_warning") === "true";
+    localStorage.getItem("astrostar_cellular_warning") === "true";
   if (isCellularWarning) {
     const netStatus = await getNetworkStatus();
     if (netStatus.connectionType === "cellular") {
@@ -127,7 +127,7 @@ downloadBtn.addEventListener("click", async () => {
 
     if (!(await enforceNetworkGuards())) return;
 
-    const preferServer = localStorage.getItem("mori_prefer_server") || "auto";
+    const preferServer = localStorage.getItem("astrostar_prefer_server") || "auto";
 
     if (batchModalOverlay && batchProgressList) {
       batchProgressList.innerHTML = "";
@@ -193,9 +193,9 @@ downloadBtn.addEventListener("click", async () => {
             statusEl.textContent = "READY";
           }
 
-          if (localStorage.getItem("mori_incognito") !== "true") {
+          if (localStorage.getItem("astrostar_incognito") !== "true") {
             const history = JSON.parse(
-              localStorage.getItem("mori_history") || "[]",
+              localStorage.getItem("astrostar_history") || "[]",
             );
             const newHistoryItem = {
               id: Date.now() + i + Math.floor(Math.random() * 1000),
@@ -214,7 +214,7 @@ downloadBtn.addEventListener("click", async () => {
             };
 
             history.unshift(newHistoryItem);
-            localStorage.setItem("mori_history", JSON.stringify(history));
+            localStorage.setItem("astrostar_history", JSON.stringify(history));
             if (typeof updateGreeting === "function") updateGreeting();
           }
         } else {
@@ -240,9 +240,9 @@ downloadBtn.addEventListener("click", async () => {
           if (batchModalOverlay.classList.contains("hidden")) return;
           batchDownloadAllBtn.disabled = true;
           const batchPhotoMode =
-            localStorage.getItem("mori_batch_photo_mode") || "all";
+            localStorage.getItem("astrostar_batch_photo_mode") || "all";
           const concurrentLimit = parseInt(
-            localStorage.getItem("mori_concurrent") || "1",
+            localStorage.getItem("astrostar_concurrent") || "1",
             10,
           );
 
@@ -361,7 +361,7 @@ downloadBtn.addEventListener("click", async () => {
                         itemTitle
                           .replace(/[\\/:*?"<>|#%&{}\[\]@$^+=~`';,]/g, "")
                           .trim()
-                          .substring(0, 60) || "Mori_Batch_Album";
+                          .substring(0, 60) || "AstroStar_Batch_Album";
                       const pdfFileName = `${sanitizedTitle}.pdf`;
                       if (
                         window.Capacitor?.isNativePlatform?.() &&
@@ -374,13 +374,13 @@ downloadBtn.addEventListener("click", async () => {
                           ),
                         );
                         await Filesystem.writeFile({
-                          path: `Download/Mori/${pdfFileName}`,
+                          path: `Download/AstroStar/${pdfFileName}`,
                           directory: "EXTERNAL_STORAGE",
                           data: base64Pdf,
                           recursive: true,
                         }).catch(() =>
                           Filesystem.writeFile({
-                            path: `Download/Mori/${pdfFileName}`,
+                            path: `Download/AstroStar/${pdfFileName}`,
                             directory: "DOCUMENTS",
                             data: base64Pdf,
                             recursive: true,
@@ -569,7 +569,7 @@ downloadBtn.addEventListener("click", async () => {
 
   try {
     let data;
-    const preferServer = localStorage.getItem("mori_prefer_server") || "ask";
+    const preferServer = localStorage.getItem("astrostar_prefer_server") || "ask";
     if (analyzeCancelled)
       throw Object.assign(new Error("cancelled"), { _isCancelled: true });
     if (url.includes("tiktok.com")) {
@@ -797,7 +797,7 @@ downloadBtn.addEventListener("click", async () => {
 
     if (data && data.status) {
       downloadBtn.removeEventListener("click", cancelAnalyzeHandler);
-      const history = JSON.parse(localStorage.getItem("mori_history") || "[]");
+      const history = JSON.parse(localStorage.getItem("astrostar_history") || "[]");
       const existing = history.find(
         (item) => cleanUrl(item.url) === cleanUrl(url),
       );
@@ -835,7 +835,7 @@ downloadBtn.addEventListener("click", async () => {
       autoClearInputBox();
 
       // Auto Download Link if enabled
-      if (localStorage.getItem("mori_auto_download") === "true") {
+      if (localStorage.getItem("astrostar_auto_download") === "true") {
         setTimeout(() => {
           const dlBtn = document.querySelector(
             "#resultSection .dl-item, #resultSection .btn-download, #resultSection .dl-btn, #resultSection [data-url]",

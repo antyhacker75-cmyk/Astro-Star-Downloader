@@ -41,9 +41,9 @@ import {
 
 // Helper to sync setting to Android SharedPreferences for ShareActivity
 export function syncSettingToNative(key, val) {
-  if (window.MoriMainBridge?.saveSetting) {
+  if (window.AstroStarMainBridge?.saveSetting) {
     try {
-      window.MoriMainBridge.saveSetting(key, String(val));
+      window.AstroStarMainBridge.saveSetting(key, String(val));
     } catch (e) {
       console.error("syncSettingToNative error", e);
     }
@@ -52,16 +52,16 @@ export function syncSettingToNative(key, val) {
 
 export function syncAllSettingsToNative() {
   const keys = [
-    "mori_lang",
-    "mori_theme",
-    "mori_font",
-    "mori_prefer_server",
-    "mori_download_path",
-    "mori_auto_folder",
-    "mori_filename",
-    "mori_incognito",
-    "mori_auto_download",
-    "mori_wifi_only",
+    "astrostar_lang",
+    "astrostar_theme",
+    "astrostar_font",
+    "astrostar_prefer_server",
+    "astrostar_download_path",
+    "astrostar_auto_folder",
+    "astrostar_filename",
+    "astrostar_incognito",
+    "astrostar_auto_download",
+    "astrostar_wifi_only",
   ];
   keys.forEach((key) => {
     const val = localStorage.getItem(key);
@@ -72,15 +72,15 @@ export function syncAllSettingsToNative() {
 }
 
 // Init Theme
-const savedTheme = localStorage.getItem("mori_theme") || "light";
+const savedTheme = localStorage.getItem("astrostar_theme") || "light";
 document.documentElement.setAttribute("data-theme", savedTheme);
 if (darkModeToggle) darkModeToggle.checked = savedTheme === "dark";
 
 darkModeToggle?.addEventListener("change", (e) => {
   const theme = e.target.checked ? "dark" : "light";
   document.documentElement.setAttribute("data-theme", theme);
-  localStorage.setItem("mori_theme", theme);
-  syncSettingToNative("mori_theme", theme);
+  localStorage.setItem("astrostar_theme", theme);
+  syncSettingToNative("astrostar_theme", theme);
   applyColorAccent();
   const lang = translations[currentLang] || translations.en;
   showToast(
@@ -96,7 +96,7 @@ const accentColors = {
 };
 
 export function applyColorAccent() {
-  const theme = localStorage.getItem("mori_theme") || "light";
+  const theme = localStorage.getItem("astrostar_theme") || "light";
   const color = accentColors.black[theme] || "#1a1917";
   document.documentElement.style.setProperty("--primary", color);
 }
@@ -104,11 +104,11 @@ export function applyColorAccent() {
 applyColorAccent();
 
 // Incognito Mode Logic
-const isIncognito = localStorage.getItem("mori_incognito") === "true";
+const isIncognito = localStorage.getItem("astrostar_incognito") === "true";
 if (incognitoToggle) {
   incognitoToggle.checked = isIncognito;
   incognitoToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_incognito", e.target.checked);
+    localStorage.setItem("astrostar_incognito", e.target.checked);
     const lang = translations[currentLang];
     showToast(
       e.target.checked
@@ -119,11 +119,11 @@ if (incognitoToggle) {
 }
 
 // Data Saver Mode Logic
-const isDataSaver = localStorage.getItem("mori_data_saver") === "true";
+const isDataSaver = localStorage.getItem("astrostar_data_saver") === "true";
 if (autoPasteToggle) {
-  autoPasteToggle.checked = localStorage.getItem("mori_auto_paste") !== "false";
+  autoPasteToggle.checked = localStorage.getItem("astrostar_auto_paste") !== "false";
   autoPasteToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_auto_paste", e.target.checked);
+    localStorage.setItem("astrostar_auto_paste", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -136,7 +136,7 @@ if (autoPasteToggle) {
 if (dataSaverToggle) {
   dataSaverToggle.checked = isDataSaver;
   dataSaverToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_data_saver", e.target.checked);
+    localStorage.setItem("astrostar_data_saver", e.target.checked);
     const lang = translations[currentLang];
     showToast(
       e.target.checked
@@ -149,9 +149,9 @@ if (dataSaverToggle) {
 
 if (autoClearHistoryToggle) {
   autoClearHistoryToggle.checked =
-    localStorage.getItem("mori_autoclear_history") === "true";
+    localStorage.getItem("astrostar_autoclear_history") === "true";
   autoClearHistoryToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_autoclear_history", e.target.checked);
+    localStorage.setItem("astrostar_autoclear_history", e.target.checked);
     const lang = translations[currentLang];
     showToast(
       e.target.checked
@@ -170,9 +170,9 @@ if (!isNativePlatform) {
 
 // Wi-Fi Only Toggle
 if (wifiOnlyToggle) {
-  wifiOnlyToggle.checked = localStorage.getItem("mori_wifi_only") === "true";
+  wifiOnlyToggle.checked = localStorage.getItem("astrostar_wifi_only") === "true";
   wifiOnlyToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_wifi_only", e.target.checked);
+    localStorage.setItem("astrostar_wifi_only", e.target.checked);
     const lang = translations[currentLang];
     showToast(
       e.target.checked ? lang["toast-wifi-on"] : lang["toast-wifi-off"],
@@ -183,9 +183,9 @@ if (wifiOnlyToggle) {
 // Auto-Download Toggle
 if (autoDownloadToggle) {
   autoDownloadToggle.checked =
-    localStorage.getItem("mori_auto_download") === "true";
+    localStorage.getItem("astrostar_auto_download") === "true";
   autoDownloadToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_auto_download", e.target.checked);
+    localStorage.setItem("astrostar_auto_download", e.target.checked);
     const lang = translations[currentLang];
     showToast(
       e.target.checked
@@ -203,23 +203,23 @@ function setupCustomSelect(selectId, storageKey, textId, menuId) {
   if (!select || !text || !menu) return;
 
   const defaultFallback =
-    storageKey === "mori_prefer_server"
+    storageKey === "astrostar_prefer_server"
       ? "ask"
-      : storageKey === "mori_font"
+      : storageKey === "astrostar_font"
         ? "display"
-        : storageKey === "mori_anim_speed"
+        : storageKey === "astrostar_anim_speed"
           ? "normal"
-          : storageKey === "mori_text_size"
+          : storageKey === "astrostar_text_size"
             ? "medium"
-            : storageKey === "mori_concurrent"
+            : storageKey === "astrostar_concurrent"
               ? "1"
-              : storageKey === "mori_overwrite"
+              : storageKey === "astrostar_overwrite"
                 ? "rename"
-                : storageKey === "mori_max_retry"
+                : storageKey === "astrostar_max_retry"
                   ? "3"
-                  : storageKey === "mori_doh"
+                  : storageKey === "astrostar_doh"
                     ? "off"
-                    : storageKey === "mori_toast_dur"
+                    : storageKey === "astrostar_toast_dur"
                       ? "3"
                       : "default";
   const currentVal = localStorage.getItem(storageKey) || defaultFallback;
@@ -269,11 +269,11 @@ function setupCustomSelect(selectId, storageKey, textId, menuId) {
       menu.classList.add("hidden");
       menu.classList.remove("open-up"); // Clean up on selection
 
-      if (storageKey === "mori_accent") applyColorAccent();
-      if (storageKey === "mori_font") applyFont();
-      if (storageKey === "mori_lang") switchLanguage(val);
-      if (storageKey === "mori_anim_speed") applyAnimSpeed();
-      if (storageKey === "mori_text_size") applyTextSize();
+      if (storageKey === "astrostar_accent") applyColorAccent();
+      if (storageKey === "astrostar_font") applyFont();
+      if (storageKey === "astrostar_lang") switchLanguage(val);
+      if (storageKey === "astrostar_anim_speed") applyAnimSpeed();
+      if (storageKey === "astrostar_text_size") applyTextSize();
 
       const labelText =
         select.closest(".settings-item")?.querySelector(".settings-title span")
@@ -286,100 +286,100 @@ function setupCustomSelect(selectId, storageKey, textId, menuId) {
 // Initialize Dropdowns
 setupCustomSelect(
   "languageSelect",
-  "mori_lang",
+  "astrostar_lang",
   "currentLangDisplay",
   "languageMenu",
 );
 setupCustomSelect(
   "filenameSelect",
-  "mori_filename",
+  "astrostar_filename",
   "filenameText",
   "filenameMenu",
 );
 
-setupCustomSelect("fontSelect", "mori_font", "fontText", "fontMenu");
+setupCustomSelect("fontSelect", "astrostar_font", "fontText", "fontMenu");
 setupCustomSelect(
   "historyLimitSelect",
-  "mori_history_limit",
+  "astrostar_history_limit",
   "historyLimitText",
   "historyLimitMenu",
 );
 setupCustomSelect(
   "autoClearDaysSelect",
-  "mori_auto_clear_days",
+  "astrostar_auto_clear_days",
   "autoClearDaysText",
   "autoClearDaysMenu",
 );
 setupCustomSelect(
   "autoClearCacheDaysSelect",
-  "mori_auto_clear_cache_days",
+  "astrostar_auto_clear_cache_days",
   "autoClearCacheDaysText",
   "autoClearCacheDaysMenu",
 );
 
 setupCustomSelect(
   "preferServerSelect",
-  "mori_prefer_server",
+  "astrostar_prefer_server",
   "preferServerText",
   "preferServerMenu",
 );
 setupCustomSelect(
   "batchPhotoModeSelect",
-  "mori_batch_photo_mode",
+  "astrostar_batch_photo_mode",
   "batchPhotoModeText",
   "batchPhotoModeMenu",
 );
 setupCustomSelect(
   "userAgentSelect",
-  "mori_user_agent",
+  "astrostar_user_agent",
   "userAgentText",
   "userAgentMenu",
 );
 setupCustomSelect(
   "requestTimeoutSelect",
-  "mori_request_timeout",
+  "astrostar_request_timeout",
   "requestTimeoutText",
   "requestTimeoutMenu",
 );
 setupCustomSelect(
   "animSpeedSelect",
-  "mori_anim_speed",
+  "astrostar_anim_speed",
   "animSpeedText",
   "animSpeedMenu",
 );
 setupCustomSelect(
   "textSizeSelect",
-  "mori_text_size",
+  "astrostar_text_size",
   "textSizeText",
   "textSizeMenu",
 );
 setupCustomSelect(
   "concurrentSelect",
-  "mori_concurrent",
+  "astrostar_concurrent",
   "concurrentText",
   "concurrentMenu",
 );
 setupCustomSelect(
   "overwriteSelect",
-  "mori_overwrite",
+  "astrostar_overwrite",
   "overwriteText",
   "overwriteMenu",
 );
 setupCustomSelect(
   "maxRetrySelect",
-  "mori_max_retry",
+  "astrostar_max_retry",
   "maxRetryText",
   "maxRetryMenu",
 );
-setupCustomSelect("dohSelect", "mori_doh", "dohText", "dohMenu");
+setupCustomSelect("dohSelect", "astrostar_doh", "dohText", "dohMenu");
 
 // Hide Progress Bar toggle
 const hideProgressToggle = document.getElementById("hideProgressToggle");
 if (hideProgressToggle) {
   hideProgressToggle.checked =
-    localStorage.getItem("mori_hide_progress") === "true";
+    localStorage.getItem("astrostar_hide_progress") === "true";
   hideProgressToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_hide_progress", e.target.checked);
+    localStorage.setItem("astrostar_hide_progress", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -391,7 +391,7 @@ if (hideProgressToggle) {
 
 setupCustomSelect(
   "toastDurSelect",
-  "mori_toast_dur",
+  "astrostar_toast_dur",
   "toastDurText",
   "toastDurMenu",
 );
@@ -400,23 +400,23 @@ setupCustomSelect(
 export function updateDlStatsDisplay() {
   const el = document.getElementById("historyDlStatsVal");
   if (!el) return;
-  const history = JSON.parse(localStorage.getItem("mori_history") || "[]");
+  const history = JSON.parse(localStorage.getItem("astrostar_history") || "[]");
   const storedCount = parseInt(
-    localStorage.getItem("mori_dl_count") || "0",
+    localStorage.getItem("astrostar_dl_count") || "0",
     10,
   );
   const count = Math.max(storedCount, history.length);
   el.textContent = count.toLocaleString();
 }
 updateDlStatsDisplay();
-window.addEventListener("mori_file_saved", () => {
-  const history = JSON.parse(localStorage.getItem("mori_history") || "[]");
+window.addEventListener("astrostar_file_saved", () => {
+  const history = JSON.parse(localStorage.getItem("astrostar_history") || "[]");
   const storedCount = parseInt(
-    localStorage.getItem("mori_dl_count") || "0",
+    localStorage.getItem("astrostar_dl_count") || "0",
     10,
   );
   const newCount = Math.max(storedCount, history.length) + 1;
-  localStorage.setItem("mori_dl_count", newCount);
+  localStorage.setItem("astrostar_dl_count", newCount);
   updateDlStatsDisplay();
 });
 
@@ -431,15 +431,15 @@ if (resetSettingsBtn) {
         "Reset all settings to their defaults? This will not delete your history or downloaded files.",
       () => {
         // Keys to preserve (history, downloaded file records, stats, incognito)
-        const preserve = ["mori_history", "mori_dl_count", "mori_incognito"];
+        const preserve = ["astrostar_history", "astrostar_dl_count", "astrostar_incognito"];
         const preserved = {};
         preserve.forEach((k) => {
           const v = localStorage.getItem(k);
           if (v !== null) preserved[k] = v;
         });
-        // Clear all mori_ keys
+        // Clear all astrostar_ keys
         Object.keys(localStorage)
-          .filter((k) => k.startsWith("mori_"))
+          .filter((k) => k.startsWith("astrostar_"))
           .forEach((k) => localStorage.removeItem(k));
         // Restore preserved keys
         Object.entries(preserved).forEach(([k, v]) =>
@@ -456,7 +456,7 @@ if (resetSettingsBtn) {
 // Animation Speed Logic
 export function applyAnimSpeed() {
   if (!document.body) return;
-  const speed = localStorage.getItem("mori_anim_speed") || "normal";
+  const speed = localStorage.getItem("astrostar_anim_speed") || "normal";
   document.body.classList.remove(
     "anim-off",
     "anim-slow",
@@ -468,7 +468,7 @@ export function applyAnimSpeed() {
 applyAnimSpeed();
 
 export function applyTextSize() {
-  const size = localStorage.getItem("mori_text_size") || "medium";
+  const size = localStorage.getItem("astrostar_text_size") || "medium";
   const fontSizeMap = { small: "14px", medium: "16px", large: "18px" };
   document.documentElement.style.fontSize = fontSizeMap[size] || "16px";
   document.body.classList.remove("text-small", "text-medium", "text-large");
@@ -480,10 +480,10 @@ applyTextSize();
 const compactModeToggle = document.getElementById("compactModeToggle");
 if (compactModeToggle) {
   compactModeToggle.checked =
-    localStorage.getItem("mori_compact_mode") === "true";
+    localStorage.getItem("astrostar_compact_mode") === "true";
   if (compactModeToggle.checked) document.body.classList.add("compact-mode");
   compactModeToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_compact_mode", e.target.checked);
+    localStorage.setItem("astrostar_compact_mode", e.target.checked);
     if (e.target.checked) {
       document.body.classList.add("compact-mode");
     } else {
@@ -501,9 +501,9 @@ if (compactModeToggle) {
 const autoAnalyzeToggle = document.getElementById("autoAnalyzeToggle");
 if (autoAnalyzeToggle) {
   autoAnalyzeToggle.checked =
-    localStorage.getItem("mori_auto_analyze") === "true";
+    localStorage.getItem("astrostar_auto_analyze") === "true";
   autoAnalyzeToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_auto_analyze", e.target.checked);
+    localStorage.setItem("astrostar_auto_analyze", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -516,9 +516,9 @@ if (autoAnalyzeToggle) {
 const autoClearInputToggle = document.getElementById("autoClearInputToggle");
 if (autoClearInputToggle) {
   autoClearInputToggle.checked =
-    localStorage.getItem("mori_auto_clear_input") === "true";
+    localStorage.getItem("astrostar_auto_clear_input") === "true";
   autoClearInputToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_auto_clear_input", e.target.checked);
+    localStorage.setItem("astrostar_auto_clear_input", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -531,9 +531,9 @@ if (autoClearInputToggle) {
 const downloadSoundToggle = document.getElementById("downloadSoundToggle");
 if (downloadSoundToggle) {
   downloadSoundToggle.checked =
-    localStorage.getItem("mori_download_sound") !== "false";
+    localStorage.getItem("astrostar_download_sound") !== "false";
   downloadSoundToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_download_sound", e.target.checked);
+    localStorage.setItem("astrostar_download_sound", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -545,9 +545,9 @@ if (downloadSoundToggle) {
 
 const autoRetryToggle = document.getElementById("autoRetryToggle");
 if (autoRetryToggle) {
-  autoRetryToggle.checked = localStorage.getItem("mori_auto_retry") !== "false";
+  autoRetryToggle.checked = localStorage.getItem("astrostar_auto_retry") !== "false";
   autoRetryToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_auto_retry", e.target.checked);
+    localStorage.setItem("astrostar_auto_retry", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -559,9 +559,9 @@ if (autoRetryToggle) {
 
 const hapticToggle = document.getElementById("hapticToggle");
 if (hapticToggle) {
-  hapticToggle.checked = localStorage.getItem("mori_haptic") === "true";
+  hapticToggle.checked = localStorage.getItem("astrostar_haptic") === "true";
   hapticToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_haptic", e.target.checked);
+    localStorage.setItem("astrostar_haptic", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -574,9 +574,9 @@ if (hapticToggle) {
 const autoFolderToggle = document.getElementById("autoFolderToggle");
 if (autoFolderToggle) {
   autoFolderToggle.checked =
-    localStorage.getItem("mori_auto_folder") !== "false";
+    localStorage.getItem("astrostar_auto_folder") !== "false";
   autoFolderToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_auto_folder", e.target.checked);
+    localStorage.setItem("astrostar_auto_folder", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -588,9 +588,9 @@ if (autoFolderToggle) {
 
 const keepAwakeToggle = document.getElementById("keepAwakeToggle");
 if (keepAwakeToggle) {
-  keepAwakeToggle.checked = localStorage.getItem("mori_keep_awake") === "true";
+  keepAwakeToggle.checked = localStorage.getItem("astrostar_keep_awake") === "true";
   keepAwakeToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_keep_awake", e.target.checked);
+    localStorage.setItem("astrostar_keep_awake", e.target.checked);
     if (e.target.checked) requestWakeLock();
     else releaseWakeLock();
     const lang = translations[currentLang] || translations.en;
@@ -605,9 +605,9 @@ if (keepAwakeToggle) {
 const autoUpdateToggle = document.getElementById("autoUpdateToggle");
 if (autoUpdateToggle) {
   autoUpdateToggle.checked =
-    localStorage.getItem("mori_auto_update") !== "false";
+    localStorage.getItem("astrostar_auto_update") !== "false";
   autoUpdateToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_auto_update", e.target.checked);
+    localStorage.setItem("astrostar_auto_update", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -619,9 +619,9 @@ if (autoUpdateToggle) {
 
 const forceIpv4Toggle = document.getElementById("forceIpv4Toggle");
 if (forceIpv4Toggle) {
-  forceIpv4Toggle.checked = localStorage.getItem("mori_force_ipv4") === "true";
+  forceIpv4Toggle.checked = localStorage.getItem("astrostar_force_ipv4") === "true";
   forceIpv4Toggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_force_ipv4", e.target.checked);
+    localStorage.setItem("astrostar_force_ipv4", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -634,9 +634,9 @@ if (forceIpv4Toggle) {
 const headerSpoofingToggle = document.getElementById("headerSpoofingToggle");
 if (headerSpoofingToggle) {
   headerSpoofingToggle.checked =
-    localStorage.getItem("mori_header_spoofing") !== "false";
+    localStorage.getItem("astrostar_header_spoofing") !== "false";
   headerSpoofingToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_header_spoofing", e.target.checked);
+    localStorage.setItem("astrostar_header_spoofing", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -649,9 +649,9 @@ if (headerSpoofingToggle) {
 const cellularWarningToggle = document.getElementById("cellularWarningToggle");
 if (cellularWarningToggle) {
   cellularWarningToggle.checked =
-    localStorage.getItem("mori_cellular_warning") === "true";
+    localStorage.getItem("astrostar_cellular_warning") === "true";
   cellularWarningToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_cellular_warning", e.target.checked);
+    localStorage.setItem("astrostar_cellular_warning", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -663,9 +663,9 @@ if (cellularWarningToggle) {
 
 const bypassSslToggle = document.getElementById("bypassSslToggle");
 if (bypassSslToggle) {
-  bypassSslToggle.checked = localStorage.getItem("mori_bypass_ssl") === "true";
+  bypassSslToggle.checked = localStorage.getItem("astrostar_bypass_ssl") === "true";
   bypassSslToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_bypass_ssl", e.target.checked);
+    localStorage.setItem("astrostar_bypass_ssl", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -686,7 +686,7 @@ if (testLatencyBtn) {
       if (CapacitorHttp) {
         await CapacitorHttp.get({
           url: "https://api.github.com/zen",
-          headers: { "User-Agent": "Mori-App" },
+          headers: { "User-Agent": "AstroStar-App" },
         });
       } else {
         await fetch("https://api.github.com/zen");
@@ -704,7 +704,7 @@ if (testLatencyBtn) {
 // Font Switching Logic
 export function applyFont() {
   if (!document.body) return;
-  const font = localStorage.getItem("mori_font") || "display";
+  const font = localStorage.getItem("astrostar_font") || "display";
   document.body.className = (document.body.className || "").replace(
     /\bfont-\S+/g,
     "",
@@ -717,9 +717,9 @@ applyFont();
 
 // Auto-Play Toggle
 if (autoPlayToggle) {
-  autoPlayToggle.checked = localStorage.getItem("mori_autoplay") !== "false";
+  autoPlayToggle.checked = localStorage.getItem("astrostar_autoplay") !== "false";
   autoPlayToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_autoplay", e.target.checked);
+    localStorage.setItem("astrostar_autoplay", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -730,9 +730,9 @@ if (autoPlayToggle) {
 }
 
 if (autoLoopToggle) {
-  autoLoopToggle.checked = localStorage.getItem("mori_loop") !== "false";
+  autoLoopToggle.checked = localStorage.getItem("astrostar_loop") !== "false";
   autoLoopToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_loop", e.target.checked);
+    localStorage.setItem("astrostar_loop", e.target.checked);
     const lang = translations[currentLang] || translations.en;
     showToast(
       e.target.checked
@@ -756,7 +756,7 @@ document.addEventListener("click", (e) => {
 });
 
 // Download Path Logic (Video)
-export let customPath = localStorage.getItem("mori_download_path") || "Mori";
+export let customPath = localStorage.getItem("astrostar_download_path") || "AstroStar";
 if (pathVal) pathVal.textContent = `/Download/${customPath}`;
 
 changePathBtn?.addEventListener("click", () => {
@@ -766,15 +766,15 @@ changePathBtn?.addEventListener("click", () => {
     `<div class="path-picker-ui">
        <div class="path-input-wrapper">
          <span class="path-label-sm">${lang["label-subfolder-downloads"]}</span>
-         <div class="mori-input-with-icon">
+         <div class="astrostar-input-with-icon">
            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
-           <input type="text" id="customPathInput" class="mori-input-noborder" value="${customPath}" placeholder="e.g. Mori">
+           <input type="text" id="customPathInput" class="astrostar-input-noborder" value="${customPath}" placeholder="e.g. AstroStar">
          </div>
        </div>
        <span class="path-label-sm">${lang["label-path-presets"]}</span>
        <div class="path-presets-container">
-         <button class="path-preset-chip" data-path="Mori">Mori</button>
-         <button class="path-preset-chip" data-path="Mori/Videos">Mori/Videos</button>
+         <button class="path-preset-chip" data-path="AstroStar">AstroStar</button>
+         <button class="path-preset-chip" data-path="AstroStar/Videos">AstroStar/Videos</button>
        </div>
        <button id="resetPathBtn" class="reset-path-btn">${lang["btn-reset-default"]}</button>
      </div>`,
@@ -783,7 +783,7 @@ changePathBtn?.addEventListener("click", () => {
       if (input && input.value.trim()) {
         const newPath = input.value.trim().replace(/[\\:*?"<>|]/g, "");
         customPath = newPath;
-        localStorage.setItem("mori_download_path", newPath);
+        localStorage.setItem("astrostar_download_path", newPath);
         if (pathVal) pathVal.textContent = `/Download/${newPath}`;
         showToast(lang["toast-path-updated"]);
       }
@@ -797,7 +797,7 @@ changePathBtn?.addEventListener("click", () => {
       });
     });
     document.getElementById("resetPathBtn")?.addEventListener("click", () => {
-      if (input) input.value = "Mori";
+      if (input) input.value = "AstroStar";
     });
   }, 100);
   okConfirmBtn.textContent = "SAVE";
@@ -805,7 +805,7 @@ changePathBtn?.addEventListener("click", () => {
 
 // Download Path Logic (Music)
 export let customMusicPath =
-  localStorage.getItem("mori_music_path") || "Mori/Music";
+  localStorage.getItem("astrostar_music_path") || "AstroStar/Music";
 if (musicPathVal) musicPathVal.textContent = `/Download/${customMusicPath}`;
 
 changeMusicPathBtn?.addEventListener("click", () => {
@@ -815,14 +815,14 @@ changeMusicPathBtn?.addEventListener("click", () => {
     `<div class="path-picker-ui">
        <div class="path-input-wrapper">
          <span class="path-label-sm">${lang["label-subfolder-downloads"]}</span>
-         <div class="mori-input-with-icon">
+         <div class="astrostar-input-with-icon">
            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
-           <input type="text" id="customMusicPathInput" class="mori-input-noborder" value="${customMusicPath}" placeholder="e.g. Mori/Music">
+           <input type="text" id="customMusicPathInput" class="astrostar-input-noborder" value="${customMusicPath}" placeholder="e.g. AstroStar/Music">
          </div>
        </div>
        <span class="path-label-sm">${lang["label-path-presets"]}</span>
        <div class="path-presets-container">
-         <button class="path-preset-chip" data-path="Mori/Music">Mori/Music</button>
+         <button class="path-preset-chip" data-path="AstroStar/Music">AstroStar/Music</button>
          <button class="path-preset-chip" data-path="Music">Music</button>
        </div>
        <button id="resetMusicPathBtn" class="reset-path-btn">${lang["btn-reset-default"]}</button>
@@ -832,7 +832,7 @@ changeMusicPathBtn?.addEventListener("click", () => {
       if (input && input.value.trim()) {
         const newPath = input.value.trim().replace(/[\\:*?"<>|]/g, "");
         customMusicPath = newPath;
-        localStorage.setItem("mori_music_path", newPath);
+        localStorage.setItem("astrostar_music_path", newPath);
         if (musicPathVal) musicPathVal.textContent = `/Download/${newPath}`;
         showToast(lang["toast-path-updated"]);
       }
@@ -848,18 +848,18 @@ changeMusicPathBtn?.addEventListener("click", () => {
     document
       .getElementById("resetMusicPathBtn")
       ?.addEventListener("click", () => {
-        if (input) input.value = "Mori/Music";
+        if (input) input.value = "AstroStar/Music";
       });
   }, 100);
   okConfirmBtn.textContent = "SAVE";
 });
 
 // Auto Clear Cache Logic
-const isAutoClear = localStorage.getItem("mori_auto_clear_cache") === "true";
+const isAutoClear = localStorage.getItem("astrostar_auto_clear_cache") === "true";
 if (autoClearToggle) {
   autoClearToggle.checked = isAutoClear;
   autoClearToggle.addEventListener("change", (e) => {
-    localStorage.setItem("mori_auto_clear_cache", e.target.checked);
+    localStorage.setItem("astrostar_auto_clear_cache", e.target.checked);
     const lang = translations[currentLang];
     showToast(
       e.target.checked
@@ -882,7 +882,7 @@ if (isAutoClear) {
 export async function clearCacheSilently() {
   if (!Filesystem) return;
   try {
-    const history = JSON.parse(localStorage.getItem("mori_history") || "[]");
+    const history = JSON.parse(localStorage.getItem("astrostar_history") || "[]");
     const activeThumbs = new Set(
       history
         .map((item) => item.thumbnail)
@@ -938,30 +938,30 @@ export async function clearCacheSilently() {
 export function updateCustomSelectsUI() {
   const lang = translations[currentLang] || translations.en;
 
-  const currentFilename = localStorage.getItem("mori_filename") || "title";
+  const currentFilename = localStorage.getItem("astrostar_filename") || "title";
   const filenameText = document.getElementById("filenameText");
   if (filenameText)
     filenameText.textContent =
       lang[`filename-${currentFilename}`] || currentFilename;
 
-  const currentUA = localStorage.getItem("mori_user_agent") || "default";
+  const currentUA = localStorage.getItem("astrostar_user_agent") || "default";
   const userAgentText = document.getElementById("userAgentText");
   if (userAgentText)
     userAgentText.textContent = lang[`ua-${currentUA}`] || currentUA;
 
-  const currentTimeout = localStorage.getItem("mori_request_timeout") || "30";
+  const currentTimeout = localStorage.getItem("astrostar_request_timeout") || "30";
   const requestTimeoutText = document.getElementById("requestTimeoutText");
   if (requestTimeoutText)
     requestTimeoutText.textContent =
       lang[`timeout-${currentTimeout}`] || `${currentTimeout}s`;
 
-  const currentServer = localStorage.getItem("mori_prefer_server") || "ask";
+  const currentServer = localStorage.getItem("astrostar_prefer_server") || "ask";
   const preferServerText = document.getElementById("preferServerText");
   if (preferServerText)
     preferServerText.textContent =
       lang[`server-${currentServer}`] || currentServer;
 
-  const currentFont = localStorage.getItem("mori_font") || "display";
+  const currentFont = localStorage.getItem("astrostar_font") || "display";
   const fontText = document.getElementById("fontText");
   if (fontText)
     fontText.textContent =
@@ -971,21 +971,21 @@ export function updateCustomSelectsUI() {
         : currentFont);
 
   const currentLimit =
-    localStorage.getItem("mori_history_limit") || "unlimited";
+    localStorage.getItem("astrostar_history_limit") || "unlimited";
   const historyLimitText = document.getElementById("historyLimitText");
   if (historyLimitText)
     historyLimitText.textContent =
       lang[`history-${currentLimit}`] || currentLimit;
 
   const currentClearDays =
-    localStorage.getItem("mori_auto_clear_days") || "off";
+    localStorage.getItem("astrostar_auto_clear_days") || "off";
   const autoClearDaysText = document.getElementById("autoClearDaysText");
   if (autoClearDaysText)
     autoClearDaysText.textContent =
       lang[`days-${currentClearDays}`] || currentClearDays;
 
   const currentCacheDays =
-    localStorage.getItem("mori_auto_clear_cache_days") || "off";
+    localStorage.getItem("astrostar_auto_clear_cache_days") || "off";
   const autoClearCacheDaysText = document.getElementById(
     "autoClearCacheDaysText",
   );
@@ -993,19 +993,19 @@ export function updateCustomSelectsUI() {
     autoClearCacheDaysText.textContent =
       lang[`days-${currentCacheDays}`] || currentCacheDays;
 
-  const currentLock = localStorage.getItem("mori_lock_type") || "none";
+  const currentLock = localStorage.getItem("astrostar_lock_type") || "none";
   const lockTypeText = document.getElementById("lockTypeText");
   if (lockTypeText)
     lockTypeText.textContent = lang[`lock-type-${currentLock}`] || currentLock;
 
   const currentBatchPhoto =
-    localStorage.getItem("mori_batch_photo_mode") || "all";
+    localStorage.getItem("astrostar_batch_photo_mode") || "all";
   const batchPhotoModeText = document.getElementById("batchPhotoModeText");
   if (batchPhotoModeText)
     batchPhotoModeText.textContent =
       lang[`batch-photo-${currentBatchPhoto}`] || currentBatchPhoto;
 
-  const currentBackup = localStorage.getItem("mori_auto_backup") || "off";
+  const currentBackup = localStorage.getItem("astrostar_auto_backup") || "off";
   const autoBackupText = document.getElementById("autoBackupText");
   if (autoBackupText) {
     if (currentBackup === "off")
@@ -1017,41 +1017,41 @@ export function updateCustomSelectsUI() {
         lang["backup-monthly"] || "Monthly (30 Days)";
   }
 
-  const currentAnimSpeed = localStorage.getItem("mori_anim_speed") || "normal";
+  const currentAnimSpeed = localStorage.getItem("astrostar_anim_speed") || "normal";
   const animSpeedText = document.getElementById("animSpeedText");
   if (animSpeedText)
     animSpeedText.textContent =
       lang[`anim-${currentAnimSpeed}`] || currentAnimSpeed;
 
-  const currentTextSize = localStorage.getItem("mori_text_size") || "medium";
+  const currentTextSize = localStorage.getItem("astrostar_text_size") || "medium";
   const textSizeText = document.getElementById("textSizeText");
   if (textSizeText)
     textSizeText.textContent =
       lang[`text-${currentTextSize}`] || currentTextSize;
 
-  const currentConcurrent = localStorage.getItem("mori_concurrent") || "1";
+  const currentConcurrent = localStorage.getItem("astrostar_concurrent") || "1";
   const concurrentText = document.getElementById("concurrentText");
   if (concurrentText)
     concurrentText.textContent =
       lang[`concurrent-${currentConcurrent}`] || currentConcurrent;
 
-  const currentOverwrite = localStorage.getItem("mori_overwrite") || "rename";
+  const currentOverwrite = localStorage.getItem("astrostar_overwrite") || "rename";
   const overwriteText = document.getElementById("overwriteText");
   if (overwriteText)
     overwriteText.textContent =
       lang[`overwrite-${currentOverwrite}`] || currentOverwrite;
 
-  const currentMaxRetry = localStorage.getItem("mori_max_retry") || "3";
+  const currentMaxRetry = localStorage.getItem("astrostar_max_retry") || "3";
   const maxRetryText = document.getElementById("maxRetryText");
   if (maxRetryText)
     maxRetryText.textContent =
       lang[`retry-${currentMaxRetry}`] || `${currentMaxRetry} Attempts`;
 
-  const currentDoh = localStorage.getItem("mori_doh") || "off";
+  const currentDoh = localStorage.getItem("astrostar_doh") || "off";
   const dohText = document.getElementById("dohText");
   if (dohText) dohText.textContent = lang[`doh-${currentDoh}`] || currentDoh;
 
-  const currentToastDur = localStorage.getItem("mori_toast_dur") || "3";
+  const currentToastDur = localStorage.getItem("astrostar_toast_dur") || "3";
   const toastDurText = document.getElementById("toastDurText");
   if (toastDurText)
     toastDurText.textContent =
@@ -1102,12 +1102,12 @@ updateLanguageUI();
 updateStorageInfo();
 
 export function checkAutoClearDays() {
-  const daysVal = localStorage.getItem("mori_auto_clear_days") || "off";
+  const daysVal = localStorage.getItem("astrostar_auto_clear_days") || "off";
   if (daysVal === "off") return;
   const days = parseInt(daysVal, 10);
   if (isNaN(days) || days <= 0) return;
   const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-  let history = JSON.parse(localStorage.getItem("mori_history") || "[]");
+  let history = JSON.parse(localStorage.getItem("astrostar_history") || "[]");
   const initialCount = history.length;
   const filtered = history.filter((item) => {
     const time =
@@ -1115,7 +1115,7 @@ export function checkAutoClearDays() {
     return time === 0 || time >= cutoff;
   });
   if (filtered.length !== initialCount) {
-    localStorage.setItem("mori_history", JSON.stringify(filtered));
+    localStorage.setItem("astrostar_history", JSON.stringify(filtered));
   }
 }
 
@@ -1150,7 +1150,7 @@ export async function updateStorageInfo() {
     if (tauriInvoke) {
       try {
         const desktopSize = await tauriInvoke("tauri_get_folder_size", {
-          folder: "Mori",
+          folder: "AstroStar",
         });
         if (typeof desktopSize === "number") {
           totalSize = desktopSize;
@@ -1160,8 +1160,8 @@ export async function updateStorageInfo() {
       }
     } else if (Filesystem) {
       totalSize += await getFolderSize("", "CACHE");
-      const primary = await getFolderSize("Download/Mori", "EXTERNAL_STORAGE");
-      const legacy = await getFolderSize("Download/Mori", "EXTERNAL");
+      const primary = await getFolderSize("Download/AstroStar", "EXTERNAL_STORAGE");
+      const legacy = await getFolderSize("Download/AstroStar", "EXTERNAL");
       totalSize += Math.max(primary, legacy);
     }
 
@@ -1175,8 +1175,8 @@ export async function updateStorageInfo() {
 
 export function switchLanguage(lang) {
   setCurrentLang(lang);
-  localStorage.setItem("mori_lang", lang);
-  syncSettingToNative("mori_lang", lang);
+  localStorage.setItem("astrostar_lang", lang);
+  syncSettingToNative("astrostar_lang", lang);
   setUIState({ currentLang });
   setUtilsState({ currentLang });
   updateLanguageUI();
@@ -1269,17 +1269,17 @@ wipeDataBtn?.addEventListener("click", () => {
     async () => {
       try {
         // Preserve some settings
-        const lang = localStorage.getItem("mori_lang");
-        const theme = localStorage.getItem("mori_theme");
-        const vPath = localStorage.getItem("mori_download_path");
-        const mPath = localStorage.getItem("mori_music_path");
+        const lang = localStorage.getItem("astrostar_lang");
+        const theme = localStorage.getItem("astrostar_theme");
+        const vPath = localStorage.getItem("astrostar_download_path");
+        const mPath = localStorage.getItem("astrostar_music_path");
 
         localStorage.clear();
 
-        if (lang) localStorage.setItem("mori_lang", lang);
-        if (theme) localStorage.setItem("mori_theme", theme);
-        if (vPath) localStorage.setItem("mori_download_path", vPath);
-        if (mPath) localStorage.setItem("mori_music_path", mPath);
+        if (lang) localStorage.setItem("astrostar_lang", lang);
+        if (theme) localStorage.setItem("astrostar_theme", theme);
+        if (vPath) localStorage.setItem("astrostar_download_path", vPath);
+        if (mPath) localStorage.setItem("astrostar_music_path", mPath);
 
         if (Filesystem) {
           try {
@@ -1310,7 +1310,7 @@ wipeDataBtn?.addEventListener("click", () => {
 reportBugBtn?.addEventListener("click", () => {
   const deviceInfo = `Model: ${navigator.userAgent}\nPlatform: ${platformVal?.textContent || "Unknown"}\nVersion: ${APP_VERSION}`;
   const text = encodeURIComponent(
-    `Hi coflyn, I found a bug in Mori App:\n\n[BUG DESCRIPTION HERE]\n\n---\nDevice Info:\n${deviceInfo}`,
+    `Hi coflyn, I found a bug in AstroStar App:\n\n[BUG DESCRIPTION HERE]\n\n---\nDevice Info:\n${deviceInfo}`,
   );
   const whatsappUrl = `whatsapp://send?phone=6285194858996&text=${text}`;
   const whatsappWebUrl = `https://wa.me/6285194858996?text=${text}`;

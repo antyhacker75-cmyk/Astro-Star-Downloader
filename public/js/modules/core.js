@@ -3,7 +3,7 @@ import { translations } from "../i18n/index.js";
 import { Filesystem } from "../utils/index.js";
 
 export const APP_VERSION = "4.3.0";
-export const GITHUB_REPO = "coflyn/Mori";
+export const GITHUB_REPO = "antyhacker75-cmyk/Astro-Star-Downloader";
 export const UPDATE_CHECK_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 export const REPO_URL = `https://github.com/${GITHUB_REPO}`;
 
@@ -171,7 +171,7 @@ export const hideGuideCheckbox = document.getElementById("hideGuideCheckbox");
 export const closeGuideBtn = document.getElementById("closeGuideBtn");
 export const guideToSettingsBtn = document.getElementById("guideToSettingsBtn");
 
-export let currentLang = localStorage.getItem("mori_lang") || "en";
+export let currentLang = localStorage.getItem("astrostar_lang") || "en";
 export function setCurrentLang(v) {
   currentLang = v;
 }
@@ -240,7 +240,7 @@ export async function updateStorageInfo() {
     if (tauriInvoke) {
       try {
         const desktopSize = await tauriInvoke("tauri_get_folder_size", {
-          folder: "Mori",
+          folder: "AstroStar",
         });
         if (typeof desktopSize === "number") {
           totalSize = desktopSize;
@@ -250,8 +250,8 @@ export async function updateStorageInfo() {
       }
     } else if (Filesystem) {
       totalSize += await getFolderSize("", "CACHE");
-      const primary = await getFolderSize("Download/Mori", "EXTERNAL_STORAGE");
-      const legacy = await getFolderSize("Download/Mori", "EXTERNAL");
+      const primary = await getFolderSize("Download/AstroStar", "EXTERNAL_STORAGE");
+      const legacy = await getFolderSize("Download/AstroStar", "EXTERNAL");
       totalSize += Math.max(primary, legacy);
     }
 
@@ -268,7 +268,7 @@ export function updateGreeting() {}
 export async function clearCacheSilently() {
   if (!Filesystem) return;
   try {
-    const history = JSON.parse(localStorage.getItem("mori_history") || "[]");
+    const history = JSON.parse(localStorage.getItem("astrostar_history") || "[]");
     const activeThumbs = new Set(
       history
         .map((item) => item.thumbnail)
