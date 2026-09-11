@@ -1,6 +1,6 @@
 {
-  "appId": "com.mori.downloader",
-  "appName": "Mori",
+  "appId": "com.astrostar.downloader",
+  "appName": "Astro Star",
   "webDir": "public",
   "plugins": {
     "CapacitorHttp": {
