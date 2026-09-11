@@ -1,6 +1,6 @@
 export const translations = {
   "en": {
-    "about-text": "AstroStar is a fast and versatile media downloader. Built with love by coflyn.",
+    "about-text": "AstroStar is a fast and versatile media downloader. Built with love by Astro Star.",
     "anim-fast": "Fast",
     "anim-normal": "Normal",
     "anim-off": "Off",
@@ -341,7 +341,7 @@ export const translations = {
     "ua-safari": "iOS Safari"
   },
   "id": {
-    "about-text": "AstroStar adalah pengunduh media yang cepat dan serbaguna. Dibuat dengan cinta oleh coflyn.",
+    "about-text": "AstroStar adalah pengunduh media yang cepat dan serbaguna. Dibuat dengan cinta oleh Astro Star.",
     "anim-fast": "Cepat",
     "anim-normal": "Normal",
     "anim-off": "Mati",
@@ -682,7 +682,7 @@ export const translations = {
     "ua-safari": "iOS Safari"
   },
   "ja": {
-    "about-text": "AstroStarは高速で多機能なメディアダウンローダーです。coflynによって愛を込めて作られました。",
+    "about-text": "AstroStarは高速で多機能なメディアダウンローダーです。Astro Starによって愛を込めて作られました。",
     "anim-fast": "速い",
     "anim-normal": "普通",
     "anim-off": "オフ",
@@ -1023,7 +1023,7 @@ export const translations = {
     "ua-safari": "iOS Safari"
   },
   "ko": {
-    "about-text": "AstroStar는 빠르고 다재다능한 미디어 다운로더입니다. coflyn이 사랑으로 만들었습니다.",
+    "about-text": "AstroStar는 빠르고 다재다능한 미디어 다운로더입니다. Astro Star이 사랑으로 만들었습니다.",
     "anim-fast": "빠르게",
     "anim-normal": "보통",
     "anim-off": "끄기",
@@ -1364,7 +1364,7 @@ export const translations = {
     "ua-safari": "iOS Safari"
   },
   "zh": {
-    "about-text": "AstroStar 是一款快速且多功能的媒体下载器。由 coflyn 用心制作。",
+    "about-text": "AstroStar 是一款快速且多功能的媒体下载器。由 Astro Star 用心制作。",
     "anim-fast": "快速",
     "anim-normal": "正常",
     "anim-off": "关闭",
@@ -1705,7 +1705,7 @@ export const translations = {
     "ua-safari": "iOS Safari"
   },
   "ar": {
-    "about-text": "AstroStar هو أداة تحميل وسائط سريعة ومتعددة الاستخدامات. صُنع بكل حب بواسطة coflyn.",
+    "about-text": "AstroStar هو أداة تحميل وسائط سريعة ومتعددة الاستخدامات. صُنع بكل حب بواسطة Astro Star.",
     "anim-fast": "سريع",
     "anim-normal": "عادي",
     "anim-off": "إيقاف",
@@ -2046,7 +2046,7 @@ export const translations = {
     "ua-safari": "سفاري iOS"
   },
   "ru": {
-    "about-text": "AstroStar — быстрый и универсальный загрузчик медиа. Сделано с любовью от coflyn.",
+    "about-text": "AstroStar — быстрый и универсальный загрузчик медиа. Сделано с любовью от Astro Star.",
     "anim-fast": "Быстро",
     "anim-normal": "Нормально",
     "anim-off": "Выкл",
@@ -2387,7 +2387,7 @@ export const translations = {
     "ua-safari": "iOS Safari"
   },
   "tl": {
-    "about-text": "Ang AstroStar ay isang mabilis at versatile na media downloader. Ginawa nang may pagmamahal ni coflyn.",
+    "about-text": "Ang AstroStar ay isang mabilis at versatile na media downloader. Ginawa nang may pagmamahal ni Astro Star.",
     "anim-fast": "Mabilis",
     "anim-normal": "Normal",
     "anim-off": "Naka-off",
@@ -2728,7 +2728,7 @@ export const translations = {
     "ua-safari": "Safari sa iOS"
   },
   "hi": {
-    "about-text": "AstroStar एक तेज़ और बहुमुखी मीडिया डाउनलोडर है। coflyn द्वारा प्यार से बनाया गया।",
+    "about-text": "AstroStar एक तेज़ और बहुमुखी मीडिया डाउनलोडर है। Astro Star द्वारा प्यार से बनाया गया।",
     "anim-fast": "तेज़",
     "anim-normal": "सामान्य",
     "anim-off": "बंद",
