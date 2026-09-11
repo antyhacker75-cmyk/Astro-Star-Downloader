@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Mori</string>
-    <string name="title_activity_main">Mori</string>
-    <string name="package_name">com.mori.downloader</string>
-    <string name="custom_url_scheme">com.mori.downloader</string>
+    <string name="app_name">Astro Star Downloader</string>
+    <string name="title_activity_main">Astro Star</string>
+    <string name="package_name">com.astrostar.downloader</string>
+    <string name="custom_url_scheme">com.astrostar.downloader</string>
 </resources>
