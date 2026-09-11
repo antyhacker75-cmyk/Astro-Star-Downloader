@@ -5,9 +5,11 @@ import {
   currentLang,
 } from "../utils/index.js";
 import { translations } from "../i18n/index.js";
+import { NativeAudio } from "@mediagrid/capacitor-native-audio";
 
 /**
  * Creates a custom video player element with all AstroStarPlayer controls.
+ * For audio-only files on native platforms, uses NativeAudio for background playback + notification.
  * @param {Object} dl - Download item with url, type, thumbnail properties.
  * @param {number} index - Slide index (0-based).
  * @param {string} resultThumbnail - Fallback thumbnail URL.
@@ -36,14 +38,9 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
     videoUrl = videoUrl.replace("http://", "https://");
   }
 
-  // Detect audio-only type (MP3, M4A, etc.) → use <audio> element on Desktop
+  // Detect audio-only type
   const dlTypeLower = (dl.type || "").toLowerCase();
-  const fileNameLower = (
-    dl.filename ||
-    dl.title ||
-    videoUrl ||
-    ""
-  ).toLowerCase();
+  const fileNameLower = (dl.filename || dl.title || videoUrl || "").toLowerCase();
   const isAudioOnly =
     dlTypeLower.includes("mp3") ||
     dlTypeLower.includes("audio") ||
@@ -55,6 +52,19 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
     fileNameLower.endsWith(".flac") ||
     fileNameLower.endsWith(".wav");
 
+  const isNative = window.Capacitor?.isNativePlatform?.();
+
+  // ============================================================
+  // 🎵 AUDIO-ONLY → Use NativeAudio for background playback + notification
+  // ============================================================
+  if (isAudioOnly && isNative) {
+    return createNativeAudioPlayer(playerContainer, dl, index, videoUrl, resultThumbnail);
+  }
+
+  // ============================================================
+  // 🎬 VIDEO (or desktop audio) → existing HTML <video>/<audio> logic
+  // ============================================================
+
   const tauriConvertFileSrcCheck =
     window.__TAURI__?.core?.convertFileSrc ||
     window.__TAURI_INTERNALS__?.convertFileSrc ||
@@ -62,7 +72,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
   const isDesktop =
     !!tauriConvertFileSrcCheck && !window.Capacitor?.isNativePlatform?.();
 
-  // Use <audio> for audio-only files on Desktop for better WKWebView compatibility
   const video =
     isAudioOnly && isDesktop
       ? (() => {
@@ -72,7 +81,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
           audio.style.width = "100%";
           audio.style.maxWidth = "340px";
           audio.style.display = "block";
-          // Give player container a music-player look for audio
           playerContainer.style.backgroundColor = "rgba(18,18,18,0.97)";
           playerContainer.style.minHeight = "120px";
           return audio;
@@ -90,7 +98,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
     (dl.type || "").toLowerCase().includes("ugoira");
   const needsBypass =
     (isBilibili || isDouyin || isRedNote || isPixiv) && !isLocal;
-  const isNative = window.Capacitor?.isNativePlatform?.();
 
   const removeFallbackImg = () => {
     const fallbackImg = playerContainer.querySelector(".fallback-img");
@@ -134,7 +141,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
     }
 
     if (tauriInvoke) {
-      // Desktop: read file bytes via Rust → Blob URL (no asset protocol permission needed)
       const mimeType = isAudioOnly
         ? fileNameLower.endsWith(".m4a")
           ? "audio/mp4"
@@ -150,7 +156,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
             video.load();
             removeLoading();
           } else {
-            // fallback to convertFileSrc
             if (tauriConvertFileSrc) {
               video.src = tauriConvertFileSrc(cleanPath);
               removeLoading();
@@ -158,7 +163,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
           }
         })
         .catch(() => {
-          // fallback to convertFileSrc
           if (tauriConvertFileSrc) {
             video.src = tauriConvertFileSrc(cleanPath);
             removeLoading();
@@ -180,7 +184,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
         }
       }
       const capSrc = window.Capacitor.convertFileSrc(rawFileUrl);
-
       video.src = capSrc;
       removeLoading();
     } else {
@@ -232,7 +235,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
             playerContainer._blobUrl = fileUrl;
             video.src = fileUrl;
 
-            // Auto-play if active
             const isCurrentActiveSlide =
               playerContainer.parentElement &&
               playerContainer.parentElement.classList.contains("active");
@@ -533,7 +535,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
   `;
   playerContainer.appendChild(controls);
 
-  // JS Logic for this player
   const playBtn = controls.querySelector(".play-toggle");
   const playIcon = playBtn.querySelector(".play-icon");
   const pauseIcon = playBtn.querySelector(".pause-icon");
@@ -595,7 +596,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
   video.ontimeupdate = updateProgress;
   video.onloadedmetadata = () => {
     updateProgress();
-    // Remove fixed aspect ratio, let it be natural or max-height
     playerContainer.style.aspectRatio = "auto";
   };
 
@@ -662,7 +662,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
   );
   window.addEventListener("touchend", stopDrag);
 
-  // Double Tap Seek Logic
   let lastTap = 0;
   playerContainer.addEventListener(
     "touchstart",
@@ -672,7 +671,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
       lastTap = now;
 
       if (tapDelay < 300) {
-        // Double Tap Detected
         const rect = playerContainer.getBoundingClientRect();
         const touchX = e.touches[0].clientX - rect.left;
         const isRight = touchX > rect.width / 2;
@@ -683,7 +681,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
           Math.min(video.duration, video.currentTime + seekAmount),
         );
 
-        // Visual Feedback
         bigPlay.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; gap:5px">
             <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">
               <path d="${isRight ? "M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" : "M20 18l-8.5-6L20 6v12zm-9-12v12l-8.5-6L11 6z"}"/>
@@ -693,7 +690,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
         bigPlay.classList.add("visible");
         setTimeout(() => {
           bigPlay.classList.remove("visible");
-          // Reset to play icon for next pause
           setTimeout(() => {
             bigPlay.innerHTML = `<svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
           }, 300);
@@ -721,7 +717,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
   };
   playerContainer.onmousemove = showControls;
 
-  // Return cleanup function to remove window listeners when player is destroyed
   playerContainer._cleanup = () => {
     window.removeEventListener("mousemove", doDrag);
     window.removeEventListener("mouseup", stopDrag);
@@ -729,6 +724,156 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
     window.removeEventListener("touchend", stopDrag);
     if (playerContainer._blobUrl) {
       URL.revokeObjectURL(playerContainer._blobUrl);
+    }
+  };
+
+  return playerContainer;
+}
+
+// ============================================================
+// 🎵 NATIVE AUDIO PLAYER (background playback + notification)
+// ============================================================
+function createNativeAudioPlayer(playerContainer, dl, index, url, resultThumbnail) {
+  const audioId = `astro_${Date.now()}_${index}`;
+  const title = dl.title || "AstroStar Media";
+  const artist = dl.author || "AstroStar";
+  const artwork = dl.thumbnail || resultThumbnail || "";
+
+  playerContainer.style.backgroundColor = "rgba(18,18,18,0.97)";
+  playerContainer.style.minHeight = "200px";
+  playerContainer.style.flexDirection = "column";
+  playerContainer.style.padding = "20px";
+  playerContainer.style.gap = "12px";
+  playerContainer.style.borderRadius = "18px";
+
+  const artUrl = artwork || "";
+  playerContainer.innerHTML = `
+    <div style="display:flex; align-items:center; gap:16px; width:100%;">
+      ${artUrl ? `<img src="${artUrl}" alt="" style="width:72px;height:72px;border-radius:12px;object-fit:cover;flex-shrink:0;" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : ""}
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:15px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${title}</div>
+        <div style="font-size:12px;color:#aaa;margin-top:4px;">${artist}</div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:center; gap:28px; margin-top:12px;">
+      <button class="nsp-seek-back" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:8px;">⏪</button>
+      <button class="nsp-play" style="background:none;border:none;color:#fff;font-size:32px;cursor:pointer;padding:8px;">▶️</button>
+      <button class="nsp-seek-fwd" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:8px;">⏩</button>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; width:100%; margin-top:8px;">
+      <span class="nsp-current" style="font-size:11px;color:#aaa;min-width:32px;">0:00</span>
+      <div style="flex:1;height:4px;background:rgba(255,255,255,0.15);border-radius:4px;overflow:hidden;position:relative;cursor:pointer;">
+        <div class="nsp-progress" style="height:100%;width:0%;background:#fff;border-radius:4px;transition:width 0.2s;"></div>
+      </div>
+      <span class="nsp-duration" style="font-size:11px;color:#aaa;min-width:32px;text-align:right;">0:00</span>
+    </div>
+  `;
+
+  const playBtn = playerContainer.querySelector(".nsp-play");
+  const backBtn = playerContainer.querySelector(".nsp-seek-back");
+  const fwdBtn = playerContainer.querySelector(".nsp-seek-fwd");
+  const progressEl = playerContainer.querySelector(".nsp-progress");
+  const currentEl = playerContainer.querySelector(".nsp-current");
+  const durationEl = playerContainer.querySelector(".nsp-duration");
+
+  let isPlaying = false;
+  let duration = 0;
+  let progressTimer = null;
+  let isInitialized = false;
+
+  const fmt = (s) => {
+    if (!s || isNaN(s)) return "0:00";
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec < 10 ? "0" : ""}${sec}`;
+  };
+
+  const updateProgress = async () => {
+    if (!isInitialized) return;
+    try {
+      const result = await NativeAudio.getCurrentTime({ audioId });
+      const currentTime = result?.currentTime || 0;
+      if (duration > 0) {
+        progressEl.style.width = `${Math.min(100, (currentTime / duration) * 100)}%`;
+      }
+      currentEl.textContent = fmt(currentTime);
+    } catch (_) {}
+  };
+
+  (async () => {
+    try {
+      await NativeAudio.create({
+        audioId,
+        audioSource: url,
+        friendlyTitle: title,
+        useForNotification: true,
+        isBackgroundMusic: false,
+        loop: localStorage.getItem("astrostar_loop") !== "false",
+        showNotification: true,
+        artworkSource: artwork || undefined,
+      });
+
+      await NativeAudio.initialize({ audioId });
+      isInitialized = true;
+
+      try {
+        const durResult = await NativeAudio.getDuration({ audioId });
+        duration = durResult?.duration || 0;
+        durationEl.textContent = fmt(duration);
+      } catch (_) {}
+
+      if (index === 0 && localStorage.getItem("astrostar_autoplay") !== "false") {
+        await NativeAudio.play({ audioId });
+        isPlaying = true;
+        playBtn.textContent = "⏸️";
+      }
+
+      progressTimer = setInterval(updateProgress, 500);
+    } catch (err) {
+      console.error("NativeAudio init failed:", err);
+      playerContainer.innerHTML = `<div style="color:#fff;text-align:center;padding:20px;font-size:14px;">Unable to play audio.<br><small style="color:#aaa;">${err?.message || ""}</small></div>`;
+    }
+  })();
+
+  playBtn.addEventListener("click", async () => {
+    if (!isInitialized) return;
+    try {
+      if (isPlaying) {
+        await NativeAudio.pause({ audioId });
+        playBtn.textContent = "▶️";
+        isPlaying = false;
+      } else {
+        await NativeAudio.play({ audioId });
+        playBtn.textContent = "⏸️";
+        isPlaying = true;
+      }
+    } catch (e) {
+      console.warn("Playback toggle failed:", e);
+    }
+  });
+
+  backBtn.addEventListener("click", async () => {
+    if (!isInitialized) return;
+    try {
+      const result = await NativeAudio.getCurrentTime({ audioId });
+      const currentTime = result?.currentTime || 0;
+      await NativeAudio.seek({ audioId, timeInSeconds: Math.max(0, currentTime - 10) });
+    } catch (_) {}
+  });
+
+  fwdBtn.addEventListener("click", async () => {
+    if (!isInitialized) return;
+    try {
+      const result = await NativeAudio.getCurrentTime({ audioId });
+      const currentTime = result?.currentTime || 0;
+      await NativeAudio.seek({ audioId, timeInSeconds: Math.min(duration, currentTime + 10) });
+    } catch (_) {}
+  });
+
+  playerContainer._cleanup = () => {
+    if (progressTimer) clearInterval(progressTimer);
+    if (isInitialized) {
+      NativeAudio.destroy({ audioId }).catch(() => {});
     }
   };
 
