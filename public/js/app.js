@@ -99,7 +99,7 @@ if (appVersionVal) appVersionVal.textContent = " " + APP_VERSION;
 
 // Run guide check on startup
 function initUserGuide() {
-  const isHidden = localStorage.getItem("mori_hide_guide") === "true";
+  const isHidden = localStorage.getItem("astrostar_hide_guide") === "true";
   if (!isHidden) {
     guideOverlay?.classList.remove("hidden");
   }
@@ -107,14 +107,14 @@ function initUserGuide() {
 
 closeGuideBtn?.addEventListener("click", () => {
   if (hideGuideCheckbox?.checked) {
-    localStorage.setItem("mori_hide_guide", "true");
+    localStorage.setItem("astrostar_hide_guide", "true");
   }
   guideOverlay?.classList.add("hidden");
 });
 
 guideToSettingsBtn?.addEventListener("click", () => {
   if (hideGuideCheckbox?.checked) {
-    localStorage.setItem("mori_hide_guide", "true");
+    localStorage.setItem("astrostar_hide_guide", "true");
   }
   guideOverlay?.classList.add("hidden");
   switchPage("settings");
@@ -169,15 +169,15 @@ function refreshHistoryIfVisible() {
     renderHistory(onHistoryItemClick, onHistoryDeleteClick);
   }
 }
-window.addEventListener("mori_download_started", refreshHistoryIfVisible);
-window.addEventListener("mori_download_ended", refreshHistoryIfVisible);
-window.addEventListener("mori_download_cancelled", refreshHistoryIfVisible);
+window.addEventListener("astrostar_download_started", refreshHistoryIfVisible);
+window.addEventListener("astrostar_download_ended", refreshHistoryIfVisible);
+window.addEventListener("astrostar_download_cancelled", refreshHistoryIfVisible);
 
 const pages = ["home", "history", "settings"];
 
 async function switchPage(pageId) {
-  const isPrivacyOn = localStorage.getItem("mori_privacy_lock") === "true";
-  const lockType = localStorage.getItem("mori_lock_type") || "none";
+  const isPrivacyOn = localStorage.getItem("astrostar_privacy_lock") === "true";
+  const lockType = localStorage.getItem("astrostar_lock_type") || "none";
 
   if (pageId === "history" && !isHistoryUnlocked) {
     if (isPrivacyOn && lockType !== "none") {
@@ -282,7 +282,7 @@ document.addEventListener(
       target.closest(".slider-container") ||
       target.closest(".media-slide") ||
       target.closest(".slider-wrapper") ||
-      target.closest(".mori-player-container") ||
+      target.closest(".astrostar-player-container") ||
       target.closest(".modal-overlay") ||
       target.closest(".history-item-actions") ||
       target.closest("input") ||
@@ -308,7 +308,7 @@ document.addEventListener(
 
 // Initial Auto-Download Check
 setTimeout(() => {
-  const autoDownload = localStorage.getItem("mori_auto_download") === "true";
+  const autoDownload = localStorage.getItem("astrostar_auto_download") === "true";
   if (autoDownload) {
     if (typeof handlePasteFromClipboard === "function") {
       handlePasteFromClipboard(true);

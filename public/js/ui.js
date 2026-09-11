@@ -34,16 +34,16 @@ export function renderHistory(onItemClick, onDeleteClick) {
   if (typeof window.checkAndMergePendingHistorySync === "function") {
     window.checkAndMergePendingHistorySync();
   }
-  const history = JSON.parse(localStorage.getItem("mori_history") || "[]");
+  const history = JSON.parse(localStorage.getItem("astrostar_history") || "[]");
   const historyPage = document.getElementById("historyPage");
   const editHistoryBtn = document.getElementById("editHistoryBtn");
   const historyActions = document.getElementById("historyActions");
   if (!historyPage) return;
-  const activeUrl = window._moriActiveDownloadUrl || null;
+  const activeUrl = window._astrostarActiveDownloadUrl || null;
 
   const dlStatsEl = document.getElementById("historyDlStatsVal");
   if (dlStatsEl) {
-    const storedCount = parseInt(localStorage.getItem("mori_dl_count") || "0", 10);
+    const storedCount = parseInt(localStorage.getItem("astrostar_dl_count") || "0", 10);
     const count = Math.max(storedCount, history.length);
     dlStatsEl.textContent = count.toLocaleString();
   }
@@ -83,7 +83,7 @@ export function renderHistory(onItemClick, onDeleteClick) {
         (activeUrl.includes(item.url)) ||
         (item.url && activeUrl && item.url.includes(activeUrl)));
 
-    const isDataSaver = localStorage.getItem("mori_data_saver") === "true";
+    const isDataSaver = localStorage.getItem("astrostar_data_saver") === "true";
     let thumbSrc = isDataSaver
       ? "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23666'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E"
       : item.thumbnail;

@@ -24,11 +24,11 @@ import { cleanUrl } from "./utils/urlUtils.js";
 import { getUserAgent } from "./utils/index.js";
 import { translations } from "./i18n/index.js";
 
-let currentLang = localStorage.getItem("mori_lang") || "en";
+let currentLang = localStorage.getItem("astrostar_lang") || "en";
 let lang = translations[currentLang] || translations.en;
 
 function applyShareLanguage() {
-  currentLang = localStorage.getItem("mori_lang") || "en";
+  currentLang = localStorage.getItem("astrostar_lang") || "en";
   lang = translations[currentLang] || translations.en;
   document.documentElement.lang = currentLang;
   document.documentElement.setAttribute("dir", currentLang === "ar" ? "rtl" : "ltr");
@@ -125,11 +125,11 @@ function detectPlatform(url) {
 function initUI() {
   applyShareLanguage();
 
-  const theme = localStorage.getItem("mori_theme") || "dark";
+  const theme = localStorage.getItem("astrostar_theme") || "dark";
   if (theme === "light") document.body.classList.add("light-theme");
   else document.body.classList.remove("light-theme");
 
-  const font = localStorage.getItem("mori_font") || "display";
+  const font = localStorage.getItem("astrostar_font") || "display";
   document.body.classList.remove(
     "font-default",
     "font-jakarta",
@@ -139,14 +139,14 @@ function initUI() {
   );
   document.body.classList.add(`font-${font}`);
 
-  targetUrl = window.__MORI_SHARE_URL || "";
+  targetUrl = window.__ASTROSTAR_SHARE_URL || "";
   if (!targetUrl) return;
 
   urlPreview.textContent = targetUrl;
   currentPlatform = detectPlatform(targetUrl);
   platformBadge.textContent = currentPlatform.toUpperCase();
 
-  const preferServer = localStorage.getItem("mori_prefer_server") || "ask";
+  const preferServer = localStorage.getItem("astrostar_prefer_server") || "ask";
   if (SERVERS[currentPlatform]) {
     const list = SERVERS[currentPlatform];
     selectedServer = preferServer === "server2" ? list[1].id : list[0].id;
@@ -180,7 +180,7 @@ function renderServerPills(list) {
 }
 
 window.dismissPanel = function () {
-  if (window.MoriShareBridge?.dismiss) window.MoriShareBridge.dismiss();
+  if (window.AstroStarShareBridge?.dismiss) window.AstroStarShareBridge.dismiss();
 };
 
 window.cancelOrDismiss = function () {
@@ -193,8 +193,8 @@ window.cancelOrDismiss = function () {
 };
 
 window.showToast = function (msg) {
-  if (window.MoriShareBridge?.showToast) {
-    window.MoriShareBridge.showToast(msg);
+  if (window.AstroStarShareBridge?.showToast) {
+    window.AstroStarShareBridge.showToast(msg);
   } else {
     const toast = document.getElementById("toast");
     if (toast) {
@@ -350,7 +350,7 @@ function renderDownloadList(result) {
       <div class="dl-badge" style="flex-shrink: 0;">${downloadBadgeText}</div>
     `;
 
-    btn.onclick = () => triggerDownload(dl, result.title || "Mori_Media", idx);
+    btn.onclick = () => triggerDownload(dl, result.title || "AstroStar_Media", idx);
     downloadList.appendChild(btn);
   });
 
@@ -374,7 +374,7 @@ async function triggerDownload(dlItem, title, idx) {
   try {
     if (finalUrl.startsWith("applemusic_resolve:")) {
       const payloadStr = finalUrl.replace("applemusic_resolve:", "");
-      const resRaw = window.MoriShareBridge.httpRequest(
+      const resRaw = window.AstroStarShareBridge.httpRequest(
         JSON.stringify({
           url: "https://aplmate.com/action/track",
           method: "POST",
@@ -420,7 +420,7 @@ async function triggerDownload(dlItem, title, idx) {
     } else if (finalUrl.startsWith("spotidown_resolve:")) {
       const parts = finalUrl.replace("spotidown_resolve:", "").split("|||");
       const payloadStr = parts[0];
-      const resRaw = window.MoriShareBridge.httpRequest(
+      const resRaw = window.AstroStarShareBridge.httpRequest(
         JSON.stringify({
           url: "https://spotidown.app/action/track",
           method: "POST",
@@ -461,7 +461,7 @@ async function triggerDownload(dlItem, title, idx) {
       const dataVal = parts[0];
       const tokenVal = parts[1];
       const BASE = "https://soundloaders.app";
-      const resRaw = window.MoriShareBridge.httpRequest(
+      const resRaw = window.AstroStarShareBridge.httpRequest(
         JSON.stringify({
           url: BASE + "/action/tracks",
           method: "POST",
@@ -498,7 +498,7 @@ async function triggerDownload(dlItem, title, idx) {
     return;
   }
 
-  if (window.MoriShareBridge?.downloadFile) {
+  if (window.AstroStarShareBridge?.downloadFile) {
     let dlReferer = targetUrl;
     if (finalUrl.includes("spotidown.app"))
       dlReferer = "https://spotidown.app/";
@@ -507,7 +507,7 @@ async function triggerDownload(dlItem, title, idx) {
     else if (finalUrl.includes("aplmate.com"))
       dlReferer = "https://aplmate.com/";
 
-    window.MoriShareBridge.downloadFile(
+    window.AstroStarShareBridge.downloadFile(
       finalUrl,
       filename,
       folder,
@@ -537,9 +537,9 @@ function getFolderForPlatform(platform) {
     bandcamp: "Bandcamp",
     pixiv: "Pixiv",
   };
-  const base = localStorage.getItem("mori_download_path") || "Mori";
+  const base = localStorage.getItem("astrostar_download_path") || "AstroStar";
   const sub = subfolders[platform] || "";
-  const autoFolder = localStorage.getItem("mori_auto_folder") !== "false";
+  const autoFolder = localStorage.getItem("astrostar_auto_folder") !== "false";
   return autoFolder && sub ? `${base}/${sub}` : base;
 }
 
@@ -549,7 +549,7 @@ function generateFilename(title, type, index) {
     .trim();
 
   const isTrackType = /^\d+\.\s+/.test(cleanTypeLabel);
-  let effectiveTitle = title || "Mori_Media";
+  let effectiveTitle = title || "AstroStar_Media";
   if (isTrackType) {
     effectiveTitle = cleanTypeLabel.replace(/^\d+\.\s+/, "").trim() || cleanTypeLabel;
   }
@@ -562,7 +562,7 @@ function generateFilename(title, type, index) {
       .replace(/\s+/g, " ")
       .substring(0, 60);
 
-  if (!sanitized) sanitized = "Mori_Media";
+  if (!sanitized) sanitized = "AstroStar_Media";
 
   let ext = "mp4";
   const t = (type || "").toLowerCase();
@@ -576,7 +576,7 @@ function generateFilename(title, type, index) {
     ext = "jpg";
   else if (t.includes("png")) ext = "png";
 
-  const template = localStorage.getItem("mori_filename") || "title";
+  const template = localStorage.getItem("astrostar_filename") || "title";
   let finalName = `${sanitized}.${ext}`;
 
   if (template === "title-platform") {
@@ -611,9 +611,9 @@ function generateFilename(title, type, index) {
 
 // Minimal History Sync
 function saveHistory(result, url) {
-  if (localStorage.getItem("mori_incognito") === "true") return;
+  if (localStorage.getItem("astrostar_incognito") === "true") return;
   try {
-    let history = JSON.parse(localStorage.getItem("mori_history") || "[]");
+    let history = JSON.parse(localStorage.getItem("astrostar_history") || "[]");
     let cleanTitle = (result.title || "Content")
       .replace(/#[^\s#]+/g, "")
       .replace(/\s{2,}/g, " ")
@@ -641,9 +641,9 @@ function saveHistory(result, url) {
     history.unshift(newItem);
 
     const updated = history.slice(0, 100);
-    localStorage.setItem("mori_history", JSON.stringify(updated));
-    if (window.MoriShareBridge?.savePendingHistory) {
-      window.MoriShareBridge.savePendingHistory(JSON.stringify(newItem));
+    localStorage.setItem("astrostar_history", JSON.stringify(updated));
+    if (window.AstroStarShareBridge?.savePendingHistory) {
+      window.AstroStarShareBridge.savePendingHistory(JSON.stringify(newItem));
     }
   } catch (err) {
     console.error("Save history error", err);
@@ -651,9 +651,9 @@ function saveHistory(result, url) {
 }
 
 function updateHistorySavedFile(filename, savedPath) {
-  if (localStorage.getItem("mori_incognito") === "true" || !targetUrl) return;
+  if (localStorage.getItem("astrostar_incognito") === "true" || !targetUrl) return;
   try {
-    let history = JSON.parse(localStorage.getItem("mori_history") || "[]");
+    let history = JSON.parse(localStorage.getItem("astrostar_history") || "[]");
     const isVideo = savedPath.toLowerCase().endsWith(".mp4");
     const isAudio =
       savedPath.toLowerCase().endsWith(".mp3") ||
@@ -675,9 +675,9 @@ function updateHistorySavedFile(filename, savedPath) {
         });
       }
       history[0] = { ...first, localFiles, localUri: savedPath };
-      localStorage.setItem("mori_history", JSON.stringify(history));
-      if (window.MoriShareBridge?.savePendingHistory) {
-        window.MoriShareBridge.savePendingHistory(JSON.stringify(history[0]));
+      localStorage.setItem("astrostar_history", JSON.stringify(history));
+      if (window.AstroStarShareBridge?.savePendingHistory) {
+        window.AstroStarShareBridge.savePendingHistory(JSON.stringify(history[0]));
       }
     }
   } catch (err) {
@@ -712,10 +712,10 @@ window.onDownloadFailed = function (filename, error) {
   });
 };
 
-window.onMoriConfigReady = function () {
+window.onAstroStarConfigReady = function () {
   initUI();
 };
 
-if (window.__MORI_SHARE_URL) {
+if (window.__ASTROSTAR_SHARE_URL) {
   initUI();
 }
