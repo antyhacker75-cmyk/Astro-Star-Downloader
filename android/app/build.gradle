@@ -21,9 +21,9 @@ android {
             def keystoreFile = file('release.keystore')
             if (keystoreFile.exists()) {
                 storeFile keystoreFile
-                storePassword 'android123'
+                storePassword 'astrostar123'
                 keyAlias 'astrostar'
-                keyPassword 'android123'
+                keyPassword 'astrostar23'
             }
         }
     }
