@@ -23,9 +23,14 @@ allprojects {
     }
 }
 
-// 👇 ADD THIS BLOCK HERE 👇
-// This forces all Capacitor modules to use Java 17 instead of Java 21
+// Fix JVM target compatibility issue
 subprojects {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
+    }
+    
     afterEvaluate {
         if (it.hasProperty('android')) {
             android {
