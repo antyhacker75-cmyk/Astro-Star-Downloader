@@ -25,12 +25,12 @@ export function renderMediaSlides(container, items, resultThumbnail) {
   if (!container) return;
 
   // Cleanup old players before clearing
-  container.querySelectorAll(".mori-player-container").forEach((pc) => {
+  container.querySelectorAll(".astrostar-player-container").forEach((pc) => {
     if (pc._cleanup) pc._cleanup();
   });
   container.innerHTML = "";
 
-  const isDataSaver = localStorage.getItem("mori_data_saver") === "true";
+  const isDataSaver = localStorage.getItem("astrostar_data_saver") === "true";
 
   items.forEach((dl, index) => {
     const slide = document.createElement("div");
@@ -139,8 +139,8 @@ export function renderMediaSlides(container, items, resultThumbnail) {
       const audio = document.createElement("audio");
       audio.controls = true;
       audio.style.width = "100%";
-      const autoPlaySetting = localStorage.getItem("mori_autoplay") !== "false";
-      const loopSetting = localStorage.getItem("mori_loop") !== "false";
+      const autoPlaySetting = localStorage.getItem("astrostar_autoplay") !== "false";
+      const loopSetting = localStorage.getItem("astrostar_loop") !== "false";
       audio.autoplay = index === 0 && autoPlaySetting;
       audio.loop = loopSetting;
 
@@ -447,8 +447,8 @@ export function updateSliderUI() {
       if (media) {
         if (media.readyState < 1) media.load();
         media.currentTime = 0;
-        media.loop = localStorage.getItem("mori_loop") !== "false";
-        if (localStorage.getItem("mori_autoplay") !== "false") {
+        media.loop = localStorage.getItem("astrostar_loop") !== "false";
+        if (localStorage.getItem("astrostar_autoplay") !== "false") {
           media.play().catch(() => {});
         }
       }
@@ -689,13 +689,13 @@ export function renderResult(result, originalUrl) {
         // If downloading, act as CANCEL
         if (isDownloadingAll) {
           playlistCancelled = true;
-          window._moriDownloadCancelled = true;
+          window._astrostarDownloadCancelled = true;
           return;
         }
 
         isDownloadingAll = true;
         playlistCancelled = false;
-        window._moriDownloadCancelled = false;
+        window._astrostarDownloadCancelled = false;
         allBtn.disabled = false; // keep enabled to act as Cancel
 
         const total = result.downloads.length;
@@ -759,7 +759,7 @@ export function renderResult(result, originalUrl) {
           showToast(completeMsg);
         }
         playlistCancelled = false;
-        window._moriDownloadCancelled = false;
+        window._astrostarDownloadCancelled = false;
       });
 
       downloadList.appendChild(allBtn);
@@ -807,9 +807,9 @@ export async function exportGalleryToPdf(title, items) {
     
     // Acquire Wake Lock & Start Native Foreground Service for background protection
     if (typeof requestWakeLock === "function") requestWakeLock();
-    if (window.MoriMainBridge?.startDownloadService) {
+    if (window.AstroStarMainBridge?.startDownloadService) {
       try {
-        window.MoriMainBridge.startDownloadService("Exporting PDF Gallery...");
+        window.AstroStarMainBridge.startDownloadService("Exporting PDF Gallery...");
       } catch (e) {}
     }
 
@@ -992,8 +992,8 @@ export async function exportGalleryToPdf(title, items) {
     const fileName = `${(title || "Gallery").replace(/[^\w\s]/gi, "").trim()}_${Date.now()}.pdf`;
 
     // Dynamic folder structure for PDF exports
-    let pdfSubfolder = localStorage.getItem("mori_download_path") || "Mori";
-    if (localStorage.getItem("mori_auto_folder") !== "false") {
+    let pdfSubfolder = localStorage.getItem("astrostar_download_path") || "AstroStar";
+    if (localStorage.getItem("astrostar_auto_folder") !== "false") {
       const firstUrl = (items[0]?.url || "").toLowerCase();
       let platformFolder = "Other";
       if (firstUrl.includes("pixiv") || firstUrl.includes("pximg") || firstUrl.includes("pixiv.me"))
@@ -1036,9 +1036,9 @@ export async function exportGalleryToPdf(title, items) {
           });
           showToast(translations[currentLang]["pdf-toast-saved"]);
 
-          if (window.MoriMainBridge?.showCompleteNotification) {
+          if (window.AstroStarMainBridge?.showCompleteNotification) {
             try {
-              window.MoriMainBridge.showCompleteNotification(
+              window.AstroStarMainBridge.showCompleteNotification(
                 "PDF Gallery Complete ✓",
                 targetPdfPath,
               );
@@ -1062,7 +1062,7 @@ export async function exportGalleryToPdf(title, items) {
       if (tauriInvoke) {
         try {
           const customFolder =
-            localStorage.getItem("mori_download_path") || "Mori";
+            localStorage.getItem("astrostar_download_path") || "AstroStar";
           await tauriInvoke("tauri_save_bytes_file", {
             bytes: Array.from(pdfBytes),
             filename: fileName,
@@ -1071,7 +1071,7 @@ export async function exportGalleryToPdf(title, items) {
           savedTauri = true;
           showToast(
             translations[currentLang]["pdf-toast-saved"] ||
-              "PDF saved to Mori folder!",
+              "PDF saved to AstroStar folder!",
           );
         } catch (e) {
           console.warn(
@@ -1097,16 +1097,16 @@ export async function exportGalleryToPdf(title, items) {
         ": " +
         (err.message.includes("memory") ? "Out of memory" : err.message),
     );
-    if (window.MoriMainBridge?.showFailedNotification) {
+    if (window.AstroStarMainBridge?.showFailedNotification) {
       try {
-        window.MoriMainBridge.showFailedNotification("PDF Export", err.message);
+        window.AstroStarMainBridge.showFailedNotification("PDF Export", err.message);
       } catch (e) {}
     }
   } finally {
     if (typeof releaseWakeLock === "function") releaseWakeLock();
-    if (window.MoriMainBridge?.stopDownloadService) {
+    if (window.AstroStarMainBridge?.stopDownloadService) {
       try {
-        window.MoriMainBridge.stopDownloadService();
+        window.AstroStarMainBridge.stopDownloadService();
       } catch (e) {}
     }
   }

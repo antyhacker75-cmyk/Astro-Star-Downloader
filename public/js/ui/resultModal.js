@@ -56,7 +56,7 @@ export function getCleanDirectoryPath(item, rawFile) {
       ));
 
   if (isPdf) {
-    return localStorage.getItem("mori_pdf_path") || "Download/Mori";
+    return localStorage.getItem("astrostar_pdf_path") || "Download/AstroStar";
   }
 
   const isAudio =
@@ -71,7 +71,7 @@ export function getCleanDirectoryPath(item, rawFile) {
         item.url.includes("music.apple")));
 
   if (isAudio) {
-    return localStorage.getItem("mori_music_path") || "Music/Mori";
+    return localStorage.getItem("astrostar_music_path") || "Music/AstroStar";
   }
 
   const isPhoto =
@@ -83,10 +83,10 @@ export function getCleanDirectoryPath(item, rawFile) {
     (item?.url && item.url.includes("pinterest"));
 
   if (isPhoto) {
-    return localStorage.getItem("mori_photo_path") || "Pictures/Mori";
+    return localStorage.getItem("astrostar_photo_path") || "Pictures/AstroStar";
   }
 
-  return localStorage.getItem("mori_video_path") || "Movies/Mori";
+  return localStorage.getItem("astrostar_video_path") || "Movies/AstroStar";
 }
 
 let modalCurrentSlide = 0;
@@ -262,8 +262,8 @@ export async function showModal(item, onRedownload) {
         if (media) {
           if (isActive) {
             media.currentTime = 0;
-            media.loop = localStorage.getItem("mori_loop") !== "false";
-            if (localStorage.getItem("mori_autoplay") !== "false") {
+            media.loop = localStorage.getItem("astrostar_loop") !== "false";
+            if (localStorage.getItem("astrostar_autoplay") !== "false") {
               media.play().catch(() => {});
             }
           } else {
@@ -351,7 +351,7 @@ export async function showModal(item, onRedownload) {
 
         slidesWrapper.addEventListener("error", showMissingStatus, true);
         slidesWrapper.addEventListener(
-          "mori_media_load_error",
+          "astrostar_media_load_error",
           showMissingStatus,
         );
 

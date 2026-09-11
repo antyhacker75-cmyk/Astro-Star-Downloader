@@ -21,13 +21,13 @@ import { currentLang } from "../modules/core.js";
 import { scraperFetch } from "../scrapers/httpHelper.js";
 
 export function cancelCurrentDownload() {
-  window._moriDownloadCancelled = true;
+  window._astrostarDownloadCancelled = true;
   // Dispatch event so history spinner can be cleared
-  window.dispatchEvent(new CustomEvent("mori_download_cancelled"));
+  window.dispatchEvent(new CustomEvent("astrostar_download_cancelled"));
 }
 
 // Expose globally so the progress toast cancel button can call it
-window._moriCancelDownload = cancelCurrentDownload;
+window._astrostarCancelDownload = cancelCurrentDownload;
 
 export async function startNativeDownload(
   url,
@@ -74,14 +74,14 @@ export async function startNativeDownload(
   }
 
   if (resetCancelFlag) {
-    window._moriDownloadCancelled = false;
+    window._astrostarDownloadCancelled = false;
   }
   // If batch already cancelled, bail immediately
-  if (window._moriDownloadCancelled) return;
+  if (window._astrostarDownloadCancelled) return;
 
-  window._moriActiveDownloadUrl = sourceUrl || url;
+  window._astrostarActiveDownloadUrl = sourceUrl || url;
   window.dispatchEvent(
-    new CustomEvent("mori_download_started", {
+    new CustomEvent("astrostar_download_started", {
       detail: { url: sourceUrl || url },
     }),
   );
@@ -121,12 +121,12 @@ export async function startNativeDownload(
     if (src.includes("snapchat")) return "Snapchat";
     return "Media";
   })();
-  if (window._moriActiveSimInterval) {
-    clearInterval(window._moriActiveSimInterval);
-    window._moriActiveSimInterval = null;
+  if (window._astrostarActiveSimInterval) {
+    clearInterval(window._astrostarActiveSimInterval);
+    window._astrostarActiveSimInterval = null;
   }
 
-  const hideProgress = localStorage.getItem("mori_hide_progress") === "true";
+  const hideProgress = localStorage.getItem("astrostar_hide_progress") === "true";
   if (!hideProgress) {
     showDownloadProgressToast(platformLabel, type);
   }
@@ -152,9 +152,9 @@ export async function startNativeDownload(
 
     // Acquire Wake Lock & Start Native Foreground Service
     requestWakeLock();
-    if (window.MoriMainBridge?.startDownloadService) {
+    if (window.AstroStarMainBridge?.startDownloadService) {
       try {
-        window.MoriMainBridge.startDownloadService(
+        window.AstroStarMainBridge.startDownloadService(
           `Downloading ${platformLabel} ${type || ""}`,
         );
       } catch (e) {
@@ -175,7 +175,7 @@ export async function startNativeDownload(
 
     let simProgress = 0;
     let realProgressReceived = false;
-    window._moriActiveSimInterval = setInterval(() => {
+    window._astrostarActiveSimInterval = setInterval(() => {
       if (realProgressReceived) return;
       if (simProgress < 50) {
         simProgress += 6 + Math.random() * 4;
@@ -189,17 +189,17 @@ export async function startNativeDownload(
     }, 160);
 
     // Remove any existing listeners first to avoid double-firing
-    if (window._moriProgressListener) {
+    if (window._astrostarProgressListener) {
       try {
-        await window._moriProgressListener.remove();
+        await window._astrostarProgressListener.remove();
       } catch (_) {}
-      window._moriProgressListener = null;
+      window._astrostarProgressListener = null;
     }
 
     // Listen for real progress if Filesystem exists
     if (Filesystem?.addListener) {
       try {
-        window._moriProgressListener = await Filesystem.addListener(
+        window._astrostarProgressListener = await Filesystem.addListener(
           "downloadProgress",
           (progress) => {
             realProgressReceived = true;
@@ -241,7 +241,7 @@ export async function startNativeDownload(
       .trim();
     const isTrackType = /^\d+\.\s+/.test(cleanTypeLabel);
 
-    let effectiveTitle = title || "Mori Media";
+    let effectiveTitle = title || "AstroStar Media";
     if (isTrackType) {
       effectiveTitle =
         cleanTypeLabel.replace(/^\d+\.\s+/, "").trim() || cleanTypeLabel;
@@ -254,9 +254,9 @@ export async function startNativeDownload(
       .replace(/\s+/g, " ")
       .substring(0, 60);
 
-    if (!sanitizedTitle) sanitizedTitle = "Mori_Media";
+    if (!sanitizedTitle) sanitizedTitle = "AstroStar_Media";
 
-    const template = localStorage.getItem("mori_filename") || "title";
+    const template = localStorage.getItem("astrostar_filename") || "title";
     let fileName = `${sanitizedTitle}.${ext}`;
 
     if (template === "title-platform") {
@@ -285,16 +285,16 @@ export async function startNativeDownload(
       fileName = `${sanitizedTitle}_${Date.now()}.${ext}`;
     }
 
-    const videoSubfolder = localStorage.getItem("mori_download_path") || "Mori";
+    const videoSubfolder = localStorage.getItem("astrostar_download_path") || "AstroStar";
     const musicSubfolder =
-      localStorage.getItem("mori_music_path") || "Mori/Music";
+      localStorage.getItem("astrostar_music_path") || "AstroStar/Music";
     const targetFolder = isAudio ? musicSubfolder : videoSubfolder;
     let fullPath = isAudio
       ? `Download/${musicSubfolder}`
       : `Download/${videoSubfolder}`;
 
     // Auto-Categorize Subfolder per Platform
-    if (localStorage.getItem("mori_auto_folder") !== "false") {
+    if (localStorage.getItem("astrostar_auto_folder") !== "false") {
       const src = (sourceUrl || url || "").toLowerCase();
       let platformFolder = "Other";
       if (
@@ -365,8 +365,8 @@ export async function startNativeDownload(
         });
       }
 
-      // Handle duplicate files based on mori_overwrite setting
-      const overwriteMode = localStorage.getItem("mori_overwrite") || "rename";
+      // Handle duplicate files based on astrostar_overwrite setting
+      const overwriteMode = localStorage.getItem("astrostar_overwrite") || "rename";
       try {
         let checkExist = null;
         for (const dir of directoriesToTry) {
@@ -416,7 +416,7 @@ export async function startNativeDownload(
     }
 
     // Check cancel BEFORE starting resolve phase
-    if (window._moriDownloadCancelled) {
+    if (window._astrostarDownloadCancelled) {
       cancelDownloadProgressToast();
       if (btn) {
         btn.disabled = false;
@@ -610,7 +610,7 @@ export async function startNativeDownload(
 
           while (!downloadUrl && pollCount < maxPolls) {
             // Check cancel between polls
-            if (window._moriDownloadCancelled) {
+            if (window._astrostarDownloadCancelled) {
               cancelDownloadProgressToast();
               if (btn) {
                 btn.disabled = false;
@@ -663,7 +663,7 @@ export async function startNativeDownload(
 
           while (!resolved && pollCount < maxPolls) {
             // Check cancel between polls
-            if (window._moriDownloadCancelled) {
+            if (window._astrostarDownloadCancelled) {
               cancelDownloadProgressToast();
               if (btn) {
                 btn.disabled = false;
@@ -828,9 +828,9 @@ export async function startNativeDownload(
 
     let savedFile;
     let attempts = 0;
-    const isAutoRetry = localStorage.getItem("mori_auto_retry") !== "false";
+    const isAutoRetry = localStorage.getItem("astrostar_auto_retry") !== "false";
     const customMaxRetry = parseInt(
-      localStorage.getItem("mori_max_retry") || "3",
+      localStorage.getItem("astrostar_max_retry") || "3",
       10,
     );
     const maxAttempts = isAutoRetry ? customMaxRetry : 1;
@@ -862,16 +862,16 @@ export async function startNativeDownload(
         attempts = 0;
         while (attempts < maxAttempts && !savedFile) {
           // Check cancel before each attempt
-          if (window._moriDownloadCancelled) break;
+          if (window._astrostarDownloadCancelled) break;
           attempts++;
           try {
             if (attempts > 1) {
               await new Promise((r) => setTimeout(r, 1000));
             }
             const isBypassSsl =
-              localStorage.getItem("mori_bypass_ssl") === "true";
+              localStorage.getItem("astrostar_bypass_ssl") === "true";
             const isForceIpv4 =
-              localStorage.getItem("mori_force_ipv4") === "true";
+              localStorage.getItem("astrostar_force_ipv4") === "true";
 
             const tempFileName = `${fileName}.tmp`;
             const dlOpts = {
@@ -957,7 +957,7 @@ export async function startNativeDownload(
     }
 
     if (!savedFile) {
-      if (window._moriDownloadCancelled) {
+      if (window._astrostarDownloadCancelled) {
         if (Filesystem) {
           for (const dir of directoriesToTry) {
             await Filesystem.deleteFile({
@@ -988,12 +988,12 @@ export async function startNativeDownload(
       );
     }
 
-    if (window._moriActiveSimInterval) {
-      clearInterval(window._moriActiveSimInterval);
-      window._moriActiveSimInterval = null;
+    if (window._astrostarActiveSimInterval) {
+      clearInterval(window._astrostarActiveSimInterval);
+      window._astrostarActiveSimInterval = null;
     }
 
-    if (window._moriDownloadCancelled) {
+    if (window._astrostarDownloadCancelled) {
       // File may have been partially/fully written — delete it
       if (Filesystem && savedFile) {
         for (const dir of directoriesToTry) {
@@ -1046,7 +1046,7 @@ export async function startNativeDownload(
     }
 
     window.dispatchEvent(
-      new CustomEvent("mori_file_saved", {
+      new CustomEvent("astrostar_file_saved", {
         detail: {
           url: sourceUrl || url,
           path: savedFile.path,
@@ -1067,9 +1067,9 @@ export async function startNativeDownload(
     );
 
     // Trigger System Tray Notification when download finishes
-    if (window.MoriMainBridge?.showCompleteNotification) {
+    if (window.AstroStarMainBridge?.showCompleteNotification) {
       try {
-        window.MoriMainBridge.showCompleteNotification(
+        window.AstroStarMainBridge.showCompleteNotification(
           effectiveTitle,
           `/Download/${targetFolder}/${fileName}`,
         );
@@ -1091,9 +1091,9 @@ export async function startNativeDownload(
     }, 2500);
   } catch (err) {
     console.error("Download failed", err);
-    if (window._moriActiveSimInterval) {
-      clearInterval(window._moriActiveSimInterval);
-      window._moriActiveSimInterval = null;
+    if (window._astrostarActiveSimInterval) {
+      clearInterval(window._astrostarActiveSimInterval);
+      window._astrostarActiveSimInterval = null;
     }
     let errorMsg = err?.message || "Download failed";
     if (
@@ -1110,9 +1110,9 @@ export async function startNativeDownload(
     failDownloadProgressToast(errorMsg, 3500);
 
     // Trigger System Tray Notification when download fails
-    if (window.MoriMainBridge?.showFailedNotification) {
+    if (window.AstroStarMainBridge?.showFailedNotification) {
       try {
-        window.MoriMainBridge.showFailedNotification(
+        window.AstroStarMainBridge.showFailedNotification(
           effectiveTitle || "Media",
           errorMsg,
         );
@@ -1131,21 +1131,21 @@ export async function startNativeDownload(
     }
     if (progressContainer) progressContainer.classList.add("hidden");
   } finally {
-    window._moriActiveDownloadUrl = null;
-    window.dispatchEvent(new CustomEvent("mori_download_ended"));
+    window._astrostarActiveDownloadUrl = null;
+    window.dispatchEvent(new CustomEvent("astrostar_download_ended"));
     releaseWakeLock();
-    if (window.MoriMainBridge?.stopDownloadService) {
+    if (window.AstroStarMainBridge?.stopDownloadService) {
       try {
-        window.MoriMainBridge.stopDownloadService();
+        window.AstroStarMainBridge.stopDownloadService();
       } catch (e) {}
     }
-    if (window._moriActiveSimInterval) {
-      clearInterval(window._moriActiveSimInterval);
-      window._moriActiveSimInterval = null;
+    if (window._astrostarActiveSimInterval) {
+      clearInterval(window._astrostarActiveSimInterval);
+      window._astrostarActiveSimInterval = null;
     }
-    if (window._moriProgressListener) {
-      await window._moriProgressListener.remove();
-      window._moriProgressListener = null;
+    if (window._astrostarProgressListener) {
+      await window._astrostarProgressListener.remove();
+      window._astrostarProgressListener = null;
     }
   }
 }
