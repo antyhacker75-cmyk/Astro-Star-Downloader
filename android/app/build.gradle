@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.mori.downloader"
+    namespace = "com.astrostar.downloader"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.mori.downloader"
+        applicationId "com.astrostar.downloader"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 16
@@ -22,7 +22,7 @@ android {
             if (keystoreFile.exists()) {
                 storeFile keystoreFile
                 storePassword 'android123'
-                keyAlias 'mori'
+                keyAlias 'astrostar'
                 keyPassword 'android123'
             }
         }
@@ -38,7 +38,7 @@ android {
     }
     applicationVariants.all { variant ->
         variant.outputs.all {
-            outputFileName = "Mori v${variant.versionName}.apk"
+            outputFileName = "AstroStar v${variant.versionName}.apk"
         }
     }
 }
