@@ -23,7 +23,7 @@ android {
                 storeFile keystoreFile
                 storePassword 'astrostar123'
                 keyAlias 'astrostar'
-                keyPassword 'astrostar23'
+                keyPassword 'astrostar123'
             }
         }
     }
