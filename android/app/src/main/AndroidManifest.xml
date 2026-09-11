@@ -9,6 +9,7 @@
         android:usesCleartextTraffic="true"
         android:requestLegacyExternalStorage="true"
         android:theme="@style/AppTheme">
+
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
@@ -44,14 +45,13 @@
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- Foreground service for downloads -->
         <service
             android:name=".DownloadForegroundService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
-        <!-- Native Audio Playback service (for background music + notification) -->
+        <!-- ⭐ NEW: Native audio playback service -->
         <service
             android:name="us.mediagrid.capacitorjs.plugins.nativeaudio.AudioPlayerService"
             android:description="@string/audio_player_service_description"
