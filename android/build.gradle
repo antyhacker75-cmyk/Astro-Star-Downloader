@@ -25,7 +25,7 @@ allprojects {
 
 // Fix JVM target compatibility issue
 subprojects {
-    pluginManager.withPlugin('org.jetbrains.kotlin.android') {
+    pluginManager.withPlugin('kotlin-android') {
         tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
             kotlinOptions {
                 jvmTarget = "17"
