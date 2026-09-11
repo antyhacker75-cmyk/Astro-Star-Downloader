@@ -34,7 +34,7 @@ export const UA_PRESETS = {
 export const SAFARI_MOBILE_UA = UA_PRESETS.safari;
 
 export function getUserAgent() {
-  const mode = localStorage.getItem("mori_user_agent") || "default";
+  const mode = localStorage.getItem("astrostar_user_agent") || "default";
   return UA_PRESETS[mode] || UA_PRESETS.default;
 }
 
@@ -118,7 +118,7 @@ export function truncate(str, num = 80) {
 }
 
 export function autoClearInputBox() {
-  if (localStorage.getItem("mori_auto_clear_input") === "true") {
+  if (localStorage.getItem("astrostar_auto_clear_input") === "true") {
     const urlInput = document.getElementById("urlInput");
     const batchUrlInput = document.getElementById("batchUrlInput");
     const clearBtn = document.getElementById("clearBtn");
@@ -155,7 +155,7 @@ export async function showToast(message) {
     toastEl.classList.add("show");
   });
 
-  const durSec = parseInt(localStorage.getItem("mori_toast_dur") || "3", 10);
+  const durSec = parseInt(localStorage.getItem("astrostar_toast_dur") || "3", 10);
   const durMs = durSec * 1000;
   setTimeout(() => {
     toastEl.classList.remove("show");
@@ -190,8 +190,8 @@ export function showDownloadProgressToast(platform, type) {
   const cancelBtn = el.querySelector("#dptCancelBtn");
   if (cancelBtn) {
     cancelBtn.addEventListener("click", () => {
-      if (typeof window._moriCancelDownload === "function") {
-        window._moriCancelDownload();
+      if (typeof window._astrostarCancelDownload === "function") {
+        window._astrostarCancelDownload();
       }
     });
   }
@@ -321,7 +321,7 @@ export function hideDownloadProgressToast(delay = 800) {
 
 // Haptic Feedback Helper
 export async function triggerHaptic(type = "medium") {
-  if (localStorage.getItem("mori_haptic") !== "true") return;
+  if (localStorage.getItem("astrostar_haptic") !== "true") return;
   try {
     const HapticsPlugin = window.Capacitor?.Plugins?.Haptics || Haptics;
     if (HapticsPlugin && window.Capacitor?.isNativePlatform?.()) {
@@ -502,7 +502,7 @@ if (typeof window !== "undefined") {
 
 export function playCompletionSound() {
   const isSoundEnabled =
-    localStorage.getItem("mori_download_sound") !== "false";
+    localStorage.getItem("astrostar_download_sound") !== "false";
   if (!isSoundEnabled) return;
 
   // Single clean chime playback via local audio asset
@@ -572,7 +572,7 @@ export async function getNetworkStatus() {
 }
 
 export async function checkWifiOnlyGuard() {
-  const isWifiOnly = localStorage.getItem("mori_wifi_only") === "true";
+  const isWifiOnly = localStorage.getItem("astrostar_wifi_only") === "true";
   if (!isWifiOnly) return true; // Allowed
 
   const status = await getNetworkStatus();
@@ -589,7 +589,7 @@ export async function checkWifiOnlyGuard() {
 let wakeLockSentinel = null;
 export async function requestWakeLock() {
   if (
-    localStorage.getItem("mori_keep_awake") === "true" &&
+    localStorage.getItem("astrostar_keep_awake") === "true" &&
     "wakeLock" in navigator
   ) {
     try {
@@ -617,8 +617,8 @@ export async function releaseWakeLock() {
 export async function cleanupOrphanedTempFiles() {
   if (!Filesystem) return;
   const directoriesToTry = ["EXTERNAL_STORAGE", "DOCUMENTS", "EXTERNAL"];
-  const videoPath = `Download/${localStorage.getItem("mori_download_path") || "Mori"}`;
-  const musicPath = `Download/${localStorage.getItem("mori_music_path") || "Mori/Music"}`;
+  const videoPath = `Download/${localStorage.getItem("astrostar_download_path") || "AstroStar"}`;
+  const musicPath = `Download/${localStorage.getItem("astrostar_music_path") || "AstroStar/Music"}`;
   const platforms = [
     "",
     "/TikTok",

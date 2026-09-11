@@ -1,5 +1,5 @@
 /**
- * URL Utilities for Mori Media Downloader
+ * URL Utilities for AstroStar Media Downloader
  * Handles URL extraction, protocol normalization, and tracker parameter stripping.
  */
 
