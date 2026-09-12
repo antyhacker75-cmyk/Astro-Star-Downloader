@@ -6,38 +6,8 @@ import {
 } from "../utils/index.js";
 import { translations } from "../i18n/index.js";
 
-// ============================================================
-// SAFE DYNAMIC IMPORT — never crashes the app if plugin missing
-// ============================================================
-let NativeAudio = null;
-let nativeAudioReady = false;
+const isNativePlatform = window.Capacitor?.isNativePlatform?.() === true;
 
-if (window.Capacitor?.isNativePlatform?.()) {
-  import("@mediagrid/capacitor-native-audio")
-    .then((mod) => {
-      NativeAudio = mod.NativeAudio || mod.default?.NativeAudio || mod.default;
-      nativeAudioReady = true;
-      console.log("[AstroStar] NativeAudio plugin loaded ✓");
-    })
-    .catch((e) => {
-      console.warn(
-        "[AstroStar] NativeAudio plugin not available, using HTML audio:",
-        e.message,
-      );
-      NativeAudio = null;
-      nativeAudioReady = false;
-    });
-}
-
-/**
- * Creates a custom video player element with all AstroStarPlayer controls.
- * For audio-only files on native platforms, uses NativeAudio (if available) for
- * background playback + notification controls.
- * @param {Object} dl - Download item with url, type, thumbnail properties.
- * @param {number} index - Slide index (0-based).
- * @param {string} resultThumbnail - Fallback thumbnail URL.
- * @returns {HTMLElement} The player container element.
- */
 export function createVideoPlayer(dl, index, resultThumbnail) {
   const playerContainer = document.createElement("div");
   playerContainer.className = "astrostar-player-container";
@@ -60,14 +30,8 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
     videoUrl = videoUrl.replace("http://", "https://");
   }
 
-  // Detect audio-only type
   const dlTypeLower = (dl.type || "").toLowerCase();
-  const fileNameLower = (
-    dl.filename ||
-    dl.title ||
-    videoUrl ||
-    ""
-  ).toLowerCase();
+  const fileNameLower = (dl.filename || dl.title || videoUrl || "").toLowerCase();
   const isAudioOnly =
     dlTypeLower.includes("mp3") ||
     dlTypeLower.includes("audio") ||
@@ -79,57 +43,21 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
     fileNameLower.endsWith(".flac") ||
     fileNameLower.endsWith(".wav");
 
-  const isNative = window.Capacitor?.isNativePlatform?.();
-
-  // ============================================================
-  // 🎵 AUDIO + Native plugin available → use native player
-  // ============================================================
-  if (isAudioOnly && isNative && NativeAudio) {
-    return createNativeAudioPlayer(
-      playerContainer,
-      dl,
-      index,
-      videoUrl,
-      resultThumbnail,
-    );
+  // 🎵 AUDIO + Native → use Native Media Player (background + notification)
+  if (isAudioOnly && isNativePlatform && window.AstroStarMainBridge?.loadMedia) {
+    return createNativeAudioPlayer(playerContainer, dl, index, videoUrl, resultThumbnail);
   }
 
-  // ============================================================
-  // 🎬 VIDEO (or audio without plugin) → HTML <video>/<audio>
-  // ============================================================
-  const tauriConvertFileSrcCheck =
-    window.__TAURI__?.core?.convertFileSrc ||
-    window.__TAURI_INTERNALS__?.convertFileSrc ||
-    window.__TAURI__?.convertFileSrc;
-  const isDesktop =
-    !!tauriConvertFileSrcCheck && !window.Capacitor?.isNativePlatform?.();
-
-  const video =
-    isAudioOnly
-      ? (() => {
-          const audio = document.createElement("audio");
-          audio.setAttribute("referrerpolicy", "no-referrer");
-          audio.controls = false;
-          audio.style.width = "100%";
-          audio.style.maxWidth = "340px";
-          audio.style.display = "block";
-          playerContainer.style.backgroundColor = "rgba(18,18,18,0.97)";
-          playerContainer.style.minHeight = "120px";
-          return audio;
-        })()
-      : (() => {
-          const v = document.createElement("video");
-          v.setAttribute("referrerpolicy", "no-referrer");
-          return v;
-        })();
+  // 🎬 VIDEO → HTML <video>
+  const video = document.createElement("video");
+  video.setAttribute("referrerpolicy", "no-referrer");
 
   const isBilibili = /bilibili|bilivideo/i.test(videoUrl);
   const isRedNote = /xiaohongshu|rednote|xhscdn/i.test(videoUrl);
   const isPixiv =
     /pixiv|ugoira/i.test(videoUrl) ||
     (dl.type || "").toLowerCase().includes("ugoira");
-  const needsBypass =
-    (isBilibili || isDouyin || isRedNote || isPixiv) && !isLocal;
+  const needsBypass = (isBilibili || isDouyin || isRedNote || isPixiv) && !isLocal;
 
   const removeFallbackImg = () => {
     const fallbackImg = playerContainer.querySelector(".fallback-img");
@@ -144,13 +72,12 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
     window.__TAURI__?.core?.invoke ||
     window.__TAURI_INTERNALS__?.invoke ||
     window.__TAURI__?.invoke;
-
   const tauriConvertFileSrc =
     window.__TAURI__?.core?.convertFileSrc ||
     window.__TAURI_INTERNALS__?.convertFileSrc ||
     window.__TAURI__?.convertFileSrc;
 
-  if (isLocal && (isNative || tauriConvertFileSrc || tauriInvoke)) {
+  if (isLocal && (isNativePlatform || tauriConvertFileSrc || tauriInvoke)) {
     playerContainer.classList.add("astrostar-loading");
     let cleanPath = dl.rawUri || videoUrl || dl.rawPath || "";
 
@@ -158,174 +85,68 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
       const capSrc = window.Capacitor?.convertFileSrc
         ? window.Capacitor.convertFileSrc(cleanPath)
         : cleanPath;
-      console.log("Loading content:// URI:", capSrc);
       video.src = capSrc;
       removeLoading();
       return playerContainer;
     }
     if (cleanPath.includes("_capacitor_file_")) {
-      cleanPath = cleanPath.substring(
-        cleanPath.indexOf("_capacitor_file_") + 16,
-      );
+      cleanPath = cleanPath.substring(cleanPath.indexOf("_capacitor_file_") + 16);
     }
     if (cleanPath.startsWith("file://")) {
       cleanPath = cleanPath.replace(/^file:\/\//, "");
     }
 
-    if (tauriInvoke) {
-      // Desktop: read file bytes via Rust → Blob URL
-      const mimeType = isAudioOnly
-        ? fileNameLower.endsWith(".m4a")
-          ? "audio/mp4"
-          : "audio/mpeg"
-        : "video/mp4";
-      tauriInvoke("tauri_read_file_bytes", { path: cleanPath })
-        .then((bytes) => {
-          if (bytes && bytes.length > 0) {
-            const blob = new Blob([new Uint8Array(bytes)], { type: mimeType });
-            const blobUrl = URL.createObjectURL(blob);
-            playerContainer._blobUrl = blobUrl;
-            video.src = blobUrl;
-            video.load();
-            removeLoading();
-          } else if (tauriConvertFileSrc) {
-            video.src = tauriConvertFileSrc(cleanPath);
-            removeLoading();
-          }
-        })
-        .catch(() => {
-          if (tauriConvertFileSrc) {
-            video.src = tauriConvertFileSrc(cleanPath);
-            removeLoading();
-          }
-        });
-    } else if (tauriConvertFileSrc) {
-      video.src = tauriConvertFileSrc(cleanPath);
-      removeLoading();
-    } else if (isNative) {
+    if (isNativePlatform) {
       let rawFileUrl;
       if (cleanPath.startsWith("/")) {
         rawFileUrl = "file://" + cleanPath;
       } else {
         const platform = window.Capacitor?.getPlatform?.();
         if (platform === "android") {
-          rawFileUrl =
-            "file:///storage/emulated/0/" + cleanPath.replace(/^\//, "");
+          rawFileUrl = "file:///storage/emulated/0/" + cleanPath.replace(/^\//, "");
         } else {
-          rawFileUrl =
-            dl.rawUri || "file:///" + cleanPath.replace(/^\//, "");
+          rawFileUrl = dl.rawUri || ("file:///" + cleanPath.replace(/^\//, ""));
         }
       }
-      const capSrc = window.Capacitor.convertFileSrc(rawFileUrl);
-      video.src = capSrc;
+      video.src = window.Capacitor.convertFileSrc(rawFileUrl);
       removeLoading();
-    } else {
-      video.src = "file://" + cleanPath;
+    } else if (tauriConvertFileSrc) {
+      video.src = tauriConvertFileSrc(cleanPath);
+      removeLoading();
     }
   }
 
   if (needsBypass) {
     playerContainer.classList.add("astrostar-loading");
-
     let referer = "https://www.google.com/";
-    let ua =
-      "Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1";
+    let ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1";
 
     if (isBilibili) {
-      referer = videoUrl.includes("bilibili.tv")
-        ? "https://www.bilibili.tv/"
-        : "https://www.bilibili.com/";
-      ua =
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36";
-    } else if (isDouyin) {
-      referer = "https://www.douyin.com/";
-    } else if (isRedNote) {
-      referer = "https://www.xiaohongshu.com/";
-    } else if (isPixiv) {
+      referer = videoUrl.includes("bilibili.tv") ? "https://www.bilibili.tv/" : "https://www.bilibili.com/";
+      ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36";
+    } else if (isDouyin) referer = "https://www.douyin.com/";
+    else if (isRedNote) referer = "https://www.xiaohongshu.com/";
+    else if (isPixiv) {
       referer = "https://www.pixiv.net/";
-      ua =
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+      ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
     }
 
-    if (isNative && CapacitorHttp) {
+    if (isNativePlatform && CapacitorHttp) {
       CapacitorHttp.get({
         url: videoUrl,
         responseType: "blob",
-        headers: {
-          Referer: referer,
-          "User-Agent": ua,
-          Range: "bytes=0-3145728",
-        },
+        headers: { Referer: referer, "User-Agent": ua, Range: "bytes=0-3145728" },
       })
         .then((res) => {
-          if (
-            res.status >= 200 &&
-            res.status < 300 &&
-            res.data &&
-            (res.data instanceof Blob ||
-              res.data.constructor?.name === "Blob")
-          ) {
+          if (res.status >= 200 && res.status < 300 && res.data instanceof Blob) {
             const fileUrl = URL.createObjectURL(res.data);
             playerContainer._blobUrl = fileUrl;
             video.src = fileUrl;
-
-            const isCurrentActiveSlide =
-              playerContainer.parentElement &&
-              playerContainer.parentElement.classList.contains("active");
-            const autoPlaySetting =
-              localStorage.getItem("astrostar_autoplay") !== "false";
-            if (
-              (index === 0 || isCurrentActiveSlide) &&
-              autoPlaySetting &&
-              video.paused
-            ) {
-              video.play().catch(() => {});
-            }
           } else {
             throw new Error(`Invalid response (Status ${res.status})`);
           }
         })
-        .catch((err) => {
-          console.error("Native preview fetch failed, falling back:", err);
-          video.src = videoUrl;
-        });
-    } else if (tauriInvoke) {
-      tauriInvoke("tauri_fetch_bytes", {
-        url: videoUrl,
-        headers: { Referer: referer, "User-Agent": ua },
-      })
-        .then((bytes) => {
-          if (bytes && bytes.length > 0) {
-            const blob = new Blob([new Uint8Array(bytes)], {
-              type: "video/mp4",
-            });
-            const blobUrl = URL.createObjectURL(blob);
-            playerContainer._blobUrl = blobUrl;
-            video.src = blobUrl;
-            removeLoading();
-
-            const isCurrentActiveSlide =
-              playerContainer.parentElement &&
-              playerContainer.parentElement.classList.contains("active");
-            const autoPlaySetting =
-              localStorage.getItem("astrostar_autoplay") !== "false";
-            if (
-              (index === 0 || isCurrentActiveSlide) &&
-              autoPlaySetting &&
-              video.paused
-            ) {
-              video.play().catch(() => {});
-            }
-          } else {
-            video.src = videoUrl;
-            removeLoading();
-          }
-        })
-        .catch((err) => {
-          console.error("Desktop preview fetch failed, falling back:", err);
-          video.src = videoUrl;
-          removeLoading();
-        });
+        .catch(() => { video.src = videoUrl; });
     } else {
       video.src = videoUrl;
     }
@@ -343,33 +164,12 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
   video.setAttribute("webkit-playsinline", "true");
 
   let posterThumb = dl.thumbnail || resultThumbnail || "";
-  const isIndownPoster =
-    posterThumb.includes("indown.io") &&
-    !posterThumb.includes("url=") &&
-    !posterThumb.includes("token=");
-
-  const isLocalPoster =
-    posterThumb.startsWith("data:") ||
-    posterThumb.startsWith("blob:") ||
-    posterThumb.includes("_capacitor_file_") ||
-    posterThumb.startsWith("file://");
-
-  if (
-    posterThumb &&
-    (posterThumb.includes("logo") ||
-      posterThumb.includes("placeholder") ||
-      posterThumb.includes("images/") ||
-      isIndownPoster ||
-      (!navigator.onLine && !isLocalPoster))
-  ) {
-    posterThumb = "";
-  }
-  if (posterThumb) {
-    video.poster = posterThumb;
-  }
+  const isIndownPoster = posterThumb.includes("indown.io") && !posterThumb.includes("url=") && !posterThumb.includes("token=");
+  const isLocalPoster = posterThumb.startsWith("data:") || posterThumb.startsWith("blob:") || posterThumb.includes("_capacitor_file_") || posterThumb.startsWith("file://");
+  if (posterThumb && (posterThumb.includes("logo") || posterThumb.includes("placeholder") || posterThumb.includes("images/") || isIndownPoster || (!navigator.onLine && !isLocalPoster))) posterThumb = "";
+  if (posterThumb) video.poster = posterThumb;
 
   playerContainer.classList.add("astrostar-loading");
-
   video.onwaiting = () => playerContainer.classList.add("astrostar-loading");
   video.onplaying = removeLoading;
   video.oncanplay = removeLoading;
@@ -378,162 +178,14 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
   video.onstalled = removeLoading;
   video.onpause = removeLoading;
 
-  let isRetryingLocal = false;
-  let isRetryingRemote = false;
-
-  video.onerror = async (e) => {
-    console.error("Video element loading error:", video.error, video.src);
-    if (
-      !isRetryingLocal &&
-      (videoUrl.includes("_capacitor_file_") ||
-        videoUrl.startsWith("file://") ||
-        isLocal)
-    ) {
-      isRetryingLocal = true;
-      console.warn("Attempting local blob fallback for video...");
-      try {
-        let cleanPath = dl.rawUri || dl.rawPath || videoUrl;
-        if (cleanPath.includes("_capacitor_file_")) {
-          cleanPath = cleanPath.substring(
-            cleanPath.indexOf("_capacitor_file_") + 16,
-          );
-        }
-        if (cleanPath.startsWith("file://")) {
-          cleanPath = cleanPath.replace(/^file:\/\//, "");
-        }
-        const mimeType = isAudioOnly
-          ? fileNameLower.endsWith(".m4a")
-            ? "audio/mp4"
-            : "audio/mpeg"
-          : "video/mp4";
-
-        if (tauriInvoke) {
-          try {
-            const bytes = await tauriInvoke("tauri_read_file_bytes", {
-              path: cleanPath,
-            });
-            if (bytes && bytes.length > 0) {
-              const blob = new Blob([new Uint8Array(bytes)], {
-                type: mimeType,
-              });
-              const blobUrl = URL.createObjectURL(blob);
-              playerContainer._blobUrl = blobUrl;
-              video.src = blobUrl;
-              video.load();
-              removeLoading();
-              return;
-            }
-          } catch (tErr) {
-            console.warn("Tauri read file fallback error:", tErr);
-          }
-        }
-
-        if (Filesystem) {
-          const relPath = cleanPath
-            .replace(/^.*\/storage\/emulated\/0\//, "")
-            .replace(/^\//, "");
-
-          let res;
-          try {
-            res = await Filesystem.readFile({
-              path: relPath,
-              directory: "EXTERNAL_STORAGE",
-            });
-          } catch (_) {}
-
-          if (!res) {
-            try {
-              res = await Filesystem.readFile({ path: cleanPath });
-            } catch (_) {}
-          }
-
-          if (res && res.data) {
-            const byteChars = atob(res.data);
-            const byteArr = new Uint8Array(byteChars.length);
-            for (let i = 0; i < byteChars.length; i++) {
-              byteArr[i] = byteChars.charCodeAt(i);
-            }
-            const blob = new Blob([byteArr], { type: mimeType });
-            const blobUrl = URL.createObjectURL(blob);
-            playerContainer._blobUrl = blobUrl;
-            video.src = blobUrl;
-            video.load();
-            removeLoading();
-            return;
-          }
-        }
-      } catch (fbErr) {
-        console.warn("Blob fallback failed:", fbErr);
-      }
-    }
-
-    if (
-      !isRetryingRemote &&
-      dl.remoteUrl &&
-      video.src !== dl.remoteUrl &&
-      navigator.onLine
-    ) {
-      isRetryingRemote = true;
-      console.warn("Falling back to remote stream URL:", dl.remoteUrl);
-      video.src = dl.remoteUrl;
-      video.load();
-      return;
-    }
-
+  video.onerror = () => {
     removeLoading();
     if (bigPlay && bigPlay.parentNode) bigPlay.remove();
     const ctrlEl = playerContainer.querySelector(".astrostar-player-controls");
     if (ctrlEl) ctrlEl.remove();
-
-    playerContainer.dispatchEvent(
-      new CustomEvent("astrostar_media_load_error", { bubbles: true }),
-    );
-
-    if (
-      !playerContainer.querySelector(".astrostar-player-error") &&
-      !playerContainer.querySelector(".fallback-img")
-    ) {
-      const fallbackSrc = posterThumb || dl.thumbnail || resultThumbnail || "";
-      if (fallbackSrc) {
-        const fbImg = document.createElement("img");
-        fbImg.className = "fallback-img";
-        fbImg.src = fallbackSrc;
-        fbImg.style.width = "100%";
-        fbImg.style.maxHeight = "100%";
-        fbImg.style.objectFit = "contain";
-        fbImg.style.borderRadius = "8px";
-        fbImg.setAttribute("referrerpolicy", "no-referrer");
-        playerContainer.appendChild(fbImg);
-      } else {
-        const errOverlay = document.createElement("div");
-        errOverlay.className = "astrostar-player-error";
-        errOverlay.style.position = "absolute";
-        errOverlay.style.top = "0";
-        errOverlay.style.left = "0";
-        errOverlay.style.width = "100%";
-        errOverlay.style.height = "100%";
-        errOverlay.style.backgroundColor = "rgba(0,0,0,0.9)";
-        errOverlay.style.display = "flex";
-        errOverlay.style.flexDirection = "column";
-        errOverlay.style.alignItems = "center";
-        errOverlay.style.justifyContent = "center";
-        errOverlay.style.color = "#fff";
-        errOverlay.style.zIndex = "10";
-        errOverlay.style.padding = "20px";
-        errOverlay.style.textAlign = "center";
-
-        errOverlay.innerHTML = `
-          <svg viewBox="0 0 24 24" width="40" height="40" fill="#fff" style="margin-bottom:12px">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-          </svg>
-          <div style="font-weight:bold;font-size:15px;margin-bottom:8px">${translations[currentLang][videoUrl.includes("_capacitor_file_") || videoUrl.startsWith("file://") || videoUrl.startsWith("content://") ? "player-error-file" : "player-error-stream"]}</div>
-        `;
-        playerContainer.appendChild(errOverlay);
-      }
-    }
+    playerContainer.dispatchEvent(new CustomEvent("astrostar_media_load_error", { bubbles: true }));
   };
 
-  // Custom Controls
   playerContainer.appendChild(video);
 
   const bigPlay = document.createElement("div");
@@ -569,7 +221,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
   `;
   playerContainer.appendChild(controls);
 
-  // JS Logic for this player
   const playBtn = controls.querySelector(".play-toggle");
   const playIcon = playBtn.querySelector(".play-icon");
   const pauseIcon = playBtn.querySelector(".pause-icon");
@@ -579,10 +230,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
   const muteBtn = controls.querySelector(".mute-toggle");
   const unmuteIcon = muteBtn.querySelector(".unmute-icon");
   const muteIcon = muteBtn.querySelector(".mute-icon");
-  const fsBtn = controls.querySelector(".fullscreen-btn");
-  if (isDesktop && fsBtn) {
-    fsBtn.style.display = "none";
-  }
 
   const formatTime = (s) => {
     if (!s || isNaN(s)) return "0:00";
@@ -591,7 +238,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
     return `${min}:${sec < 10 ? "0" : ""}${sec}`;
   };
 
-  let lastShowTime = 0;
   const updateProgress = () => {
     const p = (video.currentTime / (video.duration || 1)) * 100;
     progInner.style.width = `${p}%`;
@@ -608,7 +254,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
   video.onpause = () => {
     playIcon.classList.remove("hidden");
     pauseIcon.classList.add("hidden");
-    bigPlay.innerHTML = `<svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
     bigPlay.classList.add("visible");
   };
 
@@ -616,9 +261,7 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
     if (e) e.stopPropagation();
     if (video.paused) {
       video.loop = localStorage.getItem("astrostar_loop") !== "false";
-      video.play().catch((err) => {
-        console.warn("video.play() failed:", err);
-      });
+      video.play().catch(() => {});
     } else {
       video.pause();
     }
@@ -641,17 +284,6 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
     muteIcon.classList.toggle("hidden", !video.muted);
   };
 
-  fsBtn.onclick = (e) => {
-    e.stopPropagation();
-    if (video.requestFullscreen) {
-      video.requestFullscreen();
-    } else if (video.webkitRequestFullscreen) {
-      video.webkitRequestFullscreen();
-    } else if (video.msRequestFullscreen) {
-      video.msRequestFullscreen();
-    }
-  };
-
   const seekToPos = (clientX) => {
     const rect = prog.getBoundingClientRect();
     let pos = (clientX - rect.left) / rect.width;
@@ -660,169 +292,72 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
   };
 
   let isDragging = false;
-  const startDrag = (e) => {
-    isDragging = true;
-    seekToPos(e.clientX || e.touches[0].clientX);
-  };
-  const doDrag = (e) => {
-    if (isDragging) {
-      seekToPos(e.clientX || e.touches[0].clientX);
-    }
-  };
-  const stopDrag = () => {
-    isDragging = false;
-  };
+  const startDrag = (e) => { isDragging = true; seekToPos(e.clientX || e.touches[0].clientX); };
+  const doDrag = (e) => { if (isDragging) seekToPos(e.clientX || e.touches[0].clientX); };
+  const stopDrag = () => { isDragging = false; };
 
   prog.addEventListener("mousedown", startDrag);
   window.addEventListener("mousemove", doDrag);
   window.addEventListener("mouseup", stopDrag);
-
-  prog.addEventListener(
-    "touchstart",
-    (e) => {
-      e.stopPropagation();
-      startDrag(e);
-    },
-    { passive: false },
-  );
-  window.addEventListener(
-    "touchmove",
-    (e) => {
-      if (isDragging) {
-        e.preventDefault();
-        doDrag(e);
-      }
-    },
-    { passive: false },
-  );
+  prog.addEventListener("touchstart", (e) => { e.stopPropagation(); startDrag(e); }, { passive: false });
+  window.addEventListener("touchmove", (e) => { if (isDragging) { e.preventDefault(); doDrag(e); } }, { passive: false });
   window.addEventListener("touchend", stopDrag);
-
-  // Double Tap Seek Logic
-  let lastTap = 0;
-  playerContainer.addEventListener(
-    "touchstart",
-    (e) => {
-      const now = Date.now();
-      const tapDelay = now - lastTap;
-      lastTap = now;
-
-      if (tapDelay < 300) {
-        const rect = playerContainer.getBoundingClientRect();
-        const touchX = e.touches[0].clientX - rect.left;
-        const isRight = touchX > rect.width / 2;
-
-        const seekAmount = isRight ? 5 : -5;
-        video.currentTime = Math.max(
-          0,
-          Math.min(video.duration, video.currentTime + seekAmount),
-        );
-
-        bigPlay.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; gap:5px">
-            <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">
-              <path d="${isRight ? "M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" : "M20 18l-8.5-6L20 6v12zm-9-12v12l-8.5-6L11 6z"}"/>
-            </svg>
-            <div style="font-size:14px; font-weight:bold">${isRight ? "+5s" : "-5s"}</div>
-          </div>`;
-        bigPlay.classList.add("visible");
-        setTimeout(() => {
-          bigPlay.classList.remove("visible");
-          setTimeout(() => {
-            bigPlay.innerHTML = `<svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
-          }, 300);
-        }, 600);
-
-        e.preventDefault();
-      } else {
-        showControls();
-      }
-    },
-    { passive: false },
-  );
-
-  let hideTimeout;
-  const showControls = () => {
-    if (!playerContainer.classList.contains("touching")) {
-      lastShowTime = Date.now();
-    }
-    playerContainer.classList.add("touching");
-    clearTimeout(hideTimeout);
-    hideTimeout = setTimeout(
-      () => playerContainer.classList.remove("touching"),
-      2000,
-    );
-  };
-  playerContainer.onmousemove = showControls;
 
   playerContainer._cleanup = () => {
     window.removeEventListener("mousemove", doDrag);
     window.removeEventListener("mouseup", stopDrag);
     window.removeEventListener("touchmove", doDrag);
     window.removeEventListener("touchend", stopDrag);
-    if (playerContainer._blobUrl) {
-      URL.revokeObjectURL(playerContainer._blobUrl);
-    }
+    if (playerContainer._blobUrl) URL.revokeObjectURL(playerContainer._blobUrl);
   };
 
   return playerContainer;
 }
 
 // ============================================================
-// 🎵 NATIVE AUDIO PLAYER (background playback + notification)
-// Only called when NativeAudio plugin is loaded successfully.
+// 🎵 NATIVE AUDIO PLAYER (Spotify-like: background + notification + drawer)
+// The native Android MediaPlayer plays the audio; WebView is just the UI.
 // ============================================================
-function createNativeAudioPlayer(
-  playerContainer,
-  dl,
-  index,
-  url,
-  resultThumbnail,
-) {
-  const audioId = `astro_${Date.now()}_${index}`;
+function createNativeAudioPlayer(playerContainer, dl, index, videoUrl, resultThumbnail) {
   const title = dl.title || "AstroStar Media";
   const artist = dl.author || "AstroStar";
   const artwork = dl.thumbnail || resultThumbnail || "";
 
-  playerContainer.style.backgroundColor = "rgba(18,18,18,0.97)";
-  playerContainer.style.minHeight = "200px";
-  playerContainer.style.flexDirection = "column";
-  playerContainer.style.padding = "20px";
-  playerContainer.style.gap = "12px";
-  playerContainer.style.borderRadius = "18px";
+  playerContainer.style.cssText =
+    "background:rgba(18,18,18,0.97);display:flex;flex-direction:column;padding:20px;gap:14px;border-radius:18px;min-height:240px;align-items:center;justify-content:center;";
 
-  const artUrl = artwork || "";
   playerContainer.innerHTML = `
-    <div style="display:flex; align-items:center; gap:16px; width:100%;">
-      ${artUrl ? `<img src="${artUrl}" alt="" style="width:72px;height:72px;border-radius:12px;object-fit:cover;flex-shrink:0;" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : ""}
+    <div style="display:flex;align-items:center;gap:16px;width:100%;">
+      ${artwork ? `<img src="${artwork}" style="width:80px;height:80px;border-radius:12px;object-fit:cover;flex-shrink:0;" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : ""}
       <div style="flex:1;min-width:0;">
         <div style="font-weight:700;font-size:15px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${title}</div>
         <div style="font-size:12px;color:#aaa;margin-top:4px;">${artist}</div>
       </div>
     </div>
-    <div style="display:flex; align-items:center; justify-content:center; gap:28px; margin-top:12px;">
-      <button class="nsp-seek-back" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:8px;">⏪</button>
-      <button class="nsp-play" style="background:none;border:none;color:#fff;font-size:32px;cursor:pointer;padding:8px;">▶️</button>
-      <button class="nsp-seek-fwd" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:8px;">⏩</button>
-    </div>
-    <div style="display:flex; align-items:center; gap:10px; width:100%; margin-top:8px;">
-      <span class="nsp-current" style="font-size:11px;color:#aaa;min-width:32px;">0:00</span>
-      <div style="flex:1;height:4px;background:rgba(255,255,255,0.15);border-radius:4px;overflow:hidden;position:relative;">
-        <div class="nsp-progress" style="height:100%;width:0%;background:#fff;border-radius:4px;transition:width 0.2s;"></div>
+    <div style="display:flex;align-items:center;gap:10px;width:100%;margin-top:12px;">
+      <span class="nsp-current" style="font-size:11px;color:#aaa;min-width:34px;">0:00</span>
+      <div class="nsp-progress-bar" style="flex:1;height:4px;background:rgba(255,255,255,0.15);border-radius:4px;overflow:hidden;position:relative;cursor:pointer;">
+        <div class="nsp-progress" style="height:100%;width:0%;background:#fff;border-radius:4px;transition:width 0.25s linear;"></div>
       </div>
-      <span class="nsp-duration" style="font-size:11px;color:#aaa;min-width:32px;text-align:right;">0:00</span>
+      <span class="nsp-duration" style="font-size:11px;color:#aaa;min-width:34px;text-align:right;">0:00</span>
     </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:32px;margin-top:14px;">
+      <button class="nsp-prev" style="background:none;border:none;color:#fff;font-size:26px;cursor:pointer;padding:8px;">⏮</button>
+      <button class="nsp-play" style="background:none;border:none;color:#fff;font-size:36px;cursor:pointer;padding:8px;">▶️</button>
+      <button class="nsp-next" style="background:none;border:none;color:#fff;font-size:26px;cursor:pointer;padding:8px;">⏭</button>
+    </div>
+    <div style="font-size:11px;color:#666;margin-top:8px;text-align:center;">🎵 Playing in background — check your notification drawer</div>
   `;
 
   const playBtn = playerContainer.querySelector(".nsp-play");
-  const backBtn = playerContainer.querySelector(".nsp-seek-back");
-  const fwdBtn = playerContainer.querySelector(".nsp-seek-fwd");
+  const progressBar = playerContainer.querySelector(".nsp-progress-bar");
   const progressEl = playerContainer.querySelector(".nsp-progress");
   const currentEl = playerContainer.querySelector(".nsp-current");
   const durationEl = playerContainer.querySelector(".nsp-duration");
 
   let isPlaying = false;
-  let duration = 0;
+  let durationMs = 0;
   let progressTimer = null;
-  let isInitialized = false;
 
   const fmt = (s) => {
     if (!s || isNaN(s)) return "0:00";
@@ -831,99 +366,71 @@ function createNativeAudioPlayer(
     return `${m}:${sec < 10 ? "0" : ""}${sec}`;
   };
 
-  const updateProgress = async () => {
-    if (!isInitialized || !NativeAudio) return;
-    try {
-      const result = await NativeAudio.getCurrentTime({ audioId });
-      const currentTime = result?.currentTime || 0;
-      if (duration > 0) {
-        progressEl.style.width = `${Math.min(100, (currentTime / duration) * 100)}%`;
-      }
-      currentEl.textContent = fmt(currentTime);
-    } catch (_) {}
+  // Load and start playback natively
+  try {
+    window.AstroStarMainBridge.loadMedia(videoUrl, title, artist, artwork);
+    isPlaying = true;
+    playBtn.textContent = "⏸️";
+  } catch (e) {
+    console.warn("NativeMedia load failed:", e);
+  }
+
+  // Native → JS progress callback
+  window.astroStarMediaProgress = (posMs, durMs) => {
+    durationMs = durMs;
+    if (durMs > 0) {
+      progressEl.style.width = `${Math.min(100, (posMs / durMs) * 100)}%`;
+    }
+    currentEl.textContent = fmt(posMs / 1000);
+    durationEl.textContent = fmt(durMs / 1000);
   };
 
-  (async () => {
-    try {
-      await NativeAudio.create({
-        audioId,
-        audioSource: url,
-        friendlyTitle: title,
-        useForNotification: true,
-        isBackgroundMusic: false,
-        loop: localStorage.getItem("astrostar_loop") !== "false",
-        showNotification: true,
-        artworkSource: artwork || undefined,
-      });
-      await NativeAudio.initialize({ audioId });
-      isInitialized = true;
+  // Native → JS state callback
+  window.astroStarMediaState = (state) => {
+    if (!state) return;
+    isPlaying = !!state.isPlaying;
+    durationMs = state.duration || durationMs;
+    playBtn.textContent = isPlaying ? "⏸️" : "▶️";
+    durationEl.textContent = fmt(durationMs / 1000);
+  };
 
-      try {
-        const durResult = await NativeAudio.getDuration({ audioId });
-        duration = durResult?.duration || 0;
-        durationEl.textContent = fmt(duration);
-      } catch (_) {}
-
-      if (
-        index === 0 &&
-        localStorage.getItem("astrostar_autoplay") !== "false"
-      ) {
-        await NativeAudio.play({ audioId });
-        isPlaying = true;
-        playBtn.textContent = "⏸️";
-      }
-
-      progressTimer = setInterval(updateProgress, 500);
-    } catch (err) {
-      console.error("NativeAudio init failed:", err);
-      playerContainer.innerHTML = `<div style="color:#fff;text-align:center;padding:20px;font-size:14px;">Unable to play audio.</div>`;
-    }
-  })();
-
-  playBtn.addEventListener("click", async () => {
-    if (!isInitialized || !NativeAudio) return;
+  playBtn.addEventListener("click", () => {
     try {
       if (isPlaying) {
-        await NativeAudio.pause({ audioId });
-        playBtn.textContent = "▶️";
+        window.AstroStarMainBridge.pauseMedia();
         isPlaying = false;
+        playBtn.textContent = "▶️";
       } else {
-        await NativeAudio.play({ audioId });
-        playBtn.textContent = "⏸️";
+        window.AstroStarMainBridge.playMedia();
         isPlaying = true;
+        playBtn.textContent = "⏸️";
       }
-    } catch (e) {
-      console.warn("Playback toggle failed:", e);
-    }
+    } catch (e) { console.warn(e); }
   });
 
-  backBtn.addEventListener("click", async () => {
-    if (!isInitialized || !NativeAudio) return;
+  // Seek by tapping progress bar
+  progressBar.addEventListener("click", (e) => {
+    const rect = progressBar.getBoundingClientRect();
+    const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const seekMs = Math.round(pos * durationMs);
     try {
-      const r = await NativeAudio.getCurrentTime({ audioId });
-      await NativeAudio.seek({
-        audioId,
-        timeInSeconds: Math.max(0, (r?.currentTime || 0) - 10),
-      });
+      window.AstroStarMainBridge.seekMedia(seekMs);
     } catch (_) {}
   });
 
-  fwdBtn.addEventListener("click", async () => {
-    if (!isInitialized || !NativeAudio) return;
-    try {
-      const r = await NativeAudio.getCurrentTime({ audioId });
-      await NativeAudio.seek({
-        audioId,
-        timeInSeconds: Math.min(duration, (r?.currentTime || 0) + 10),
-      });
-    } catch (_) {}
+  playerContainer.querySelector(".nsp-prev").addEventListener("click", () => {
+    try { window.AstroStarMainBridge.seekMedia(0); } catch (_) {}
+  });
+
+  playerContainer.querySelector(".nsp-next").addEventListener("click", () => {
+    try { window.AstroStarMainBridge.stopMedia(); } catch (_) {}
   });
 
   playerContainer._cleanup = () => {
     if (progressTimer) clearInterval(progressTimer);
-    if (isInitialized && NativeAudio) {
-      NativeAudio.destroy({ audioId }).catch(() => {});
-    }
+    window.astroStarMediaProgress = null;
+    window.astroStarMediaState = null;
+    try { window.AstroStarMainBridge.stopMedia(); } catch (_) {}
   };
 
   return playerContainer;
