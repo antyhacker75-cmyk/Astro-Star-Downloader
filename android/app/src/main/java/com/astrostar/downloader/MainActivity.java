@@ -1,9 +1,12 @@
 package com.astrostar.downloader;
- 
+
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
@@ -11,18 +14,80 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebViewClient;
- 
+
 public class MainActivity extends BridgeActivity {
 
+    private static MainActivity instance;
+    public static MainActivity getInstance() { return instance; }
+
+    private BroadcastReceiver mediaActionReceiver;
+
     public class AstroStarMainBridge {
+
+        @JavascriptInterface
+        public void loadMedia(String url, String title, String artist, String artwork) {
+            try {
+                Intent intent = new Intent(MainActivity.this, MediaPlaybackService.class);
+                intent.setAction(MediaPlaybackService.ACTION_LOAD);
+                intent.putExtra(MediaPlaybackService.EXTRA_URL, url);
+                intent.putExtra(MediaPlaybackService.EXTRA_TITLE, title);
+                intent.putExtra(MediaPlaybackService.EXTRA_ARTIST, artist);
+                intent.putExtra(MediaPlaybackService.EXTRA_ARTWORK, artwork);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(intent);
+                } else {
+                    startService(intent);
+                }
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+
+        @JavascriptInterface
+        public void playMedia() {
+            try {
+                Intent intent = new Intent(MainActivity.this, MediaPlaybackService.class);
+                intent.setAction(MediaPlaybackService.ACTION_PLAY);
+                startService(intent);
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+
+        @JavascriptInterface
+        public void pauseMedia() {
+            try {
+                Intent intent = new Intent(MainActivity.this, MediaPlaybackService.class);
+                intent.setAction(MediaPlaybackService.ACTION_PAUSE);
+                startService(intent);
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+
+        @JavascriptInterface
+        public void stopMedia() {
+            try {
+                Intent intent = new Intent(MainActivity.this, MediaPlaybackService.class);
+                intent.setAction(MediaPlaybackService.ACTION_STOP);
+                startService(intent);
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+
+        @JavascriptInterface
+        public void seekMedia(final int positionMs) {
+            try {
+                Intent intent = new Intent(MainActivity.this, MediaPlaybackService.class);
+                intent.setAction(MediaPlaybackService.ACTION_PLAY);
+                // We'll use a dedicated action for seek
+                // Send seek as broadcast to the service
+                // Simplest: send a new intent through media session callback
+                // But it's easier to just start service with a seek intent
+                intent.putExtra("seek", positionMs);
+                MainActivity.this.startService(intent);
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+
         @JavascriptInterface
         public String getPendingHistoryList() {
             try {
                 SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
                 return prefs.getString("astrostar_pending_share_history_list", "[]");
-            } catch (Exception e) {
-                return "[]";
-            }
+            } catch (Exception e) { return "[]"; }
         }
 
         @JavascriptInterface
@@ -47,14 +112,12 @@ public class MainActivity extends BridgeActivity {
             try {
                 Intent intent = new Intent(MainActivity.this, DownloadForegroundService.class);
                 intent.putExtra("title", title != null ? title : "Downloading Media...");
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     startForegroundService(intent);
                 } else {
                     startService(intent);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
 
         @JavascriptInterface
@@ -62,9 +125,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 Intent intent = new Intent(MainActivity.this, DownloadForegroundService.class);
                 stopService(intent);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
 
         @JavascriptInterface
@@ -72,9 +133,9 @@ public class MainActivity extends BridgeActivity {
             try {
                 android.app.NotificationManager nm = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 if (nm == null) return;
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     android.app.NotificationChannel ch = new android.app.NotificationChannel(
-                            "astrostar_download_complete", "Astro Star Downloads", android.app.NotificationManager.IMPORTANCE_DEFAULT);
+                            "astrostar_download_complete", "AstroStar Downloads", android.app.NotificationManager.IMPORTANCE_DEFAULT);
                     nm.createNotificationChannel(ch);
                 }
                 androidx.core.app.NotificationCompat.Builder b = new androidx.core.app.NotificationCompat.Builder(MainActivity.this, "astrostar_download_complete")
@@ -84,9 +145,7 @@ public class MainActivity extends BridgeActivity {
                         .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
                         .setAutoCancel(true);
                 nm.notify((int) System.currentTimeMillis(), b.build());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
 
         @JavascriptInterface
@@ -94,9 +153,9 @@ public class MainActivity extends BridgeActivity {
             try {
                 android.app.NotificationManager nm = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 if (nm == null) return;
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     android.app.NotificationChannel ch = new android.app.NotificationChannel(
-                            "astrostar_download_complete", "Astro Star Downloads", android.app.NotificationManager.IMPORTANCE_DEFAULT);
+                            "astrostar_download_complete", "AstroStar Downloads", android.app.NotificationManager.IMPORTANCE_DEFAULT);
                     nm.createNotificationChannel(ch);
                 }
                 androidx.core.app.NotificationCompat.Builder b = new androidx.core.app.NotificationCompat.Builder(MainActivity.this, "astrostar_download_complete")
@@ -106,15 +165,14 @@ public class MainActivity extends BridgeActivity {
                         .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
                         .setAutoCancel(true);
                 nm.notify((int) System.currentTimeMillis(), b.build());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        instance = this;
 
         WebView webView = getBridge().getWebView();
         if (webView != null) {
@@ -162,8 +220,14 @@ public class MainActivity extends BridgeActivity {
         requestNotificationPermission();
     }
 
+    @Override
+    protected void onDestroy() {
+        if (instance == this) instance = null;
+        super.onDestroy();
+    }
+
     private void requestNotificationPermission() {
-        if (android.os.Build.VERSION.SDK_INT >= 33) {
+        if (Build.VERSION.SDK_INT >= 33) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
             }
@@ -174,12 +238,9 @@ public class MainActivity extends BridgeActivity {
     public void onResume() {
         super.onResume();
         if (getBridge() != null && getBridge().getWebView() != null) {
-            getBridge().getWebView().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    getBridge().getWebView().evaluateJavascript(
+            getBridge().getWebView().postDelayed(() -> {
+                getBridge().getWebView().evaluateJavascript(
                         "if (typeof window.checkAndMergePendingHistory === 'function') window.checkAndMergePendingHistory();", null);
-                }
             }, 300);
         }
     }
@@ -193,12 +254,9 @@ public class MainActivity extends BridgeActivity {
                 String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
                 if (sharedText != null) {
                     final String escapedText = sharedText.replace("'", "\\'").replace("\"", "\\\"").replace("\n", " ");
-                    getBridge().getWebView().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            getBridge().getWebView().evaluateJavascript("window.astrostarShareText = '" + escapedText + "';", null);
-                            getBridge().triggerWindowJSEvent("astrostarShareIntent", "{ \"text\": \"" + escapedText + "\" }");
-                        }
+                    getBridge().getWebView().postDelayed(() -> {
+                        getBridge().getWebView().evaluateJavascript("window.astroStarShareText = '" + escapedText + "';", null);
+                        getBridge().triggerWindowJSEvent("astroStarShareIntent", "{ \"text\": \"" + escapedText + "\" }");
                     }, 1000);
                 }
             }
