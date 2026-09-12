@@ -43,21 +43,71 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
     fileNameLower.endsWith(".flac") ||
     fileNameLower.endsWith(".wav");
 
-  // 🎵 AUDIO + Native → use Native Media Player (background + notification)
-  if (isAudioOnly && isNativePlatform && window.AstroStarMainBridge?.loadMedia) {
+  // ============================================================
+  // ⭐ FORCE NATIVE PLAYER for anything in the Music folder
+  // This fixes MP4 files with static album art (e.g. YouTube Music)
+  // ============================================================
+  const filePath = (dl.rawPath || dl.rawUri || dl.url || dl.filename || "").toLowerCase();
+  const isMusicFolder =
+    filePath.includes("/music/") ||
+    filePath.includes("\\music\\") ||
+    filePath.includes("/download/astrostar/music") ||
+    filePath.includes("/download/mori/music");
+  const isRealAudio =
+    isAudioOnly ||
+    filePath.endsWith(".mp3") ||
+    filePath.endsWith(".m4a") ||
+    filePath.endsWith(".aac") ||
+    filePath.endsWith(".opus") ||
+    filePath.endsWith(".flac") ||
+    filePath.endsWith(".wav") ||
+    filePath.endsWith(".ogg");
+
+  const shouldUseNative =
+    (isRealAudio || isMusicFolder) &&
+    isNativePlatform &&
+    !!window.AstroStarMainBridge?.loadMedia;
+
+  if (shouldUseNative) {
     return createNativeAudioPlayer(playerContainer, dl, index, videoUrl, resultThumbnail);
   }
 
-  // 🎬 VIDEO → HTML <video>
-  const video = document.createElement("video");
-  video.setAttribute("referrerpolicy", "no-referrer");
+  // ============================================================
+  // 🎬 VIDEO (or desktop audio) → HTML <video>/<audio>
+  // ============================================================
+  const tauriConvertFileSrcCheck =
+    window.__TAURI__?.core?.convertFileSrc ||
+    window.__TAURI_INTERNALS__?.convertFileSrc ||
+    window.__TAURI__?.convertFileSrc;
+  const isDesktop =
+    !!tauriConvertFileSrcCheck && !window.Capacitor?.isNativePlatform?.();
+
+  const video =
+    isAudioOnly && isDesktop
+      ? (() => {
+          const audio = document.createElement("audio");
+          audio.setAttribute("referrerpolicy", "no-referrer");
+          audio.controls = false;
+          audio.style.width = "100%";
+          audio.style.maxWidth = "340px";
+          audio.style.display = "block";
+          playerContainer.style.backgroundColor = "rgba(18,18,18,0.97)";
+          playerContainer.style.minHeight = "120px";
+          return audio;
+        })()
+      : (() => {
+          const v = document.createElement("video");
+          v.setAttribute("referrerpolicy", "no-referrer");
+          return v;
+        })();
 
   const isBilibili = /bilibili|bilivideo/i.test(videoUrl);
   const isRedNote = /xiaohongshu|rednote|xhscdn/i.test(videoUrl);
   const isPixiv =
     /pixiv|ugoira/i.test(videoUrl) ||
     (dl.type || "").toLowerCase().includes("ugoira");
-  const needsBypass = (isBilibili || isDouyin || isRedNote || isPixiv) && !isLocal;
+  const needsBypass =
+    (isBilibili || isDouyin || isRedNote || isPixiv) && !isLocal;
 
   const removeFallbackImg = () => {
     const fallbackImg = playerContainer.querySelector(".fallback-img");
@@ -124,9 +174,11 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
     if (isBilibili) {
       referer = videoUrl.includes("bilibili.tv") ? "https://www.bilibili.tv/" : "https://www.bilibili.com/";
       ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36";
-    } else if (isDouyin) referer = "https://www.douyin.com/";
-    else if (isRedNote) referer = "https://www.xiaohongshu.com/";
-    else if (isPixiv) {
+    } else if (isDouyin) {
+      referer = "https://www.douyin.com/";
+    } else if (isRedNote) {
+      referer = "https://www.xiaohongshu.com/";
+    } else if (isPixiv) {
       referer = "https://www.pixiv.net/";
       ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
     }
@@ -230,6 +282,8 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
   const muteBtn = controls.querySelector(".mute-toggle");
   const unmuteIcon = muteBtn.querySelector(".unmute-icon");
   const muteIcon = muteBtn.querySelector(".mute-icon");
+  const fsBtn = controls.querySelector(".fullscreen-btn");
+  if (isDesktop && fsBtn) fsBtn.style.display = "none";
 
   const formatTime = (s) => {
     if (!s || isNaN(s)) return "0:00";
@@ -254,6 +308,7 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
   video.onpause = () => {
     playIcon.classList.remove("hidden");
     pauseIcon.classList.add("hidden");
+    bigPlay.innerHTML = `<svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
     bigPlay.classList.add("visible");
   };
 
@@ -284,6 +339,13 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
     muteIcon.classList.toggle("hidden", !video.muted);
   };
 
+  fsBtn.onclick = (e) => {
+    e.stopPropagation();
+    if (video.requestFullscreen) video.requestFullscreen();
+    else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+    else if (video.msRequestFullscreen) video.msRequestFullscreen();
+  };
+
   const seekToPos = (clientX) => {
     const rect = prog.getBoundingClientRect();
     let pos = (clientX - rect.left) / rect.width;
@@ -303,6 +365,44 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
   window.addEventListener("touchmove", (e) => { if (isDragging) { e.preventDefault(); doDrag(e); } }, { passive: false });
   window.addEventListener("touchend", stopDrag);
 
+  let lastTap = 0;
+  playerContainer.addEventListener("touchstart", (e) => {
+    const now = Date.now();
+    const tapDelay = now - lastTap;
+    lastTap = now;
+    if (tapDelay < 300) {
+      const rect = playerContainer.getBoundingClientRect();
+      const touchX = e.touches[0].clientX - rect.left;
+      const isRight = touchX > rect.width / 2;
+      const seekAmount = isRight ? 5 : -5;
+      video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seekAmount));
+      bigPlay.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:5px">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">
+          <path d="${isRight ? "M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" : "M20 18l-8.5-6L20 6v12zm-9-12v12l-8.5-6L11 6z"}"/>
+        </svg>
+        <div style="font-size:14px;font-weight:bold">${isRight ? "+5s" : "-5s"}</div>
+      </div>`;
+      bigPlay.classList.add("visible");
+      setTimeout(() => {
+        bigPlay.classList.remove("visible");
+        setTimeout(() => {
+          bigPlay.innerHTML = `<svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+        }, 300);
+      }, 600);
+      e.preventDefault();
+    } else {
+      showControls();
+    }
+  }, { passive: false });
+
+  let hideTimeout;
+  const showControls = () => {
+    playerContainer.classList.add("touching");
+    clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => playerContainer.classList.remove("touching"), 2000);
+  };
+  playerContainer.onmousemove = showControls;
+
   playerContainer._cleanup = () => {
     window.removeEventListener("mousemove", doDrag);
     window.removeEventListener("mouseup", stopDrag);
@@ -315,8 +415,7 @@ export function createVideoPlayer(dl, index, resultThumbnail) {
 }
 
 // ============================================================
-// 🎵 NATIVE AUDIO PLAYER (Spotify-like: background + notification + drawer)
-// The native Android MediaPlayer plays the audio; WebView is just the UI.
+// 🎵 NATIVE AUDIO PLAYER — Spotify-style background playback
 // ============================================================
 function createNativeAudioPlayer(playerContainer, dl, index, videoUrl, resultThumbnail) {
   const title = dl.title || "AstroStar Media";
@@ -357,7 +456,6 @@ function createNativeAudioPlayer(playerContainer, dl, index, videoUrl, resultThu
 
   let isPlaying = false;
   let durationMs = 0;
-  let progressTimer = null;
 
   const fmt = (s) => {
     if (!s || isNaN(s)) return "0:00";
@@ -366,7 +464,6 @@ function createNativeAudioPlayer(playerContainer, dl, index, videoUrl, resultThu
     return `${m}:${sec < 10 ? "0" : ""}${sec}`;
   };
 
-  // Load and start playback natively
   try {
     window.AstroStarMainBridge.loadMedia(videoUrl, title, artist, artwork);
     isPlaying = true;
@@ -375,7 +472,6 @@ function createNativeAudioPlayer(playerContainer, dl, index, videoUrl, resultThu
     console.warn("NativeMedia load failed:", e);
   }
 
-  // Native → JS progress callback
   window.astroStarMediaProgress = (posMs, durMs) => {
     durationMs = durMs;
     if (durMs > 0) {
@@ -385,7 +481,6 @@ function createNativeAudioPlayer(playerContainer, dl, index, videoUrl, resultThu
     durationEl.textContent = fmt(durMs / 1000);
   };
 
-  // Native → JS state callback
   window.astroStarMediaState = (state) => {
     if (!state) return;
     isPlaying = !!state.isPlaying;
@@ -408,14 +503,11 @@ function createNativeAudioPlayer(playerContainer, dl, index, videoUrl, resultThu
     } catch (e) { console.warn(e); }
   });
 
-  // Seek by tapping progress bar
   progressBar.addEventListener("click", (e) => {
     const rect = progressBar.getBoundingClientRect();
     const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const seekMs = Math.round(pos * durationMs);
-    try {
-      window.AstroStarMainBridge.seekMedia(seekMs);
-    } catch (_) {}
+    try { window.AstroStarMainBridge.seekMedia(seekMs); } catch (_) {}
   });
 
   playerContainer.querySelector(".nsp-prev").addEventListener("click", () => {
@@ -427,7 +519,6 @@ function createNativeAudioPlayer(playerContainer, dl, index, videoUrl, resultThu
   });
 
   playerContainer._cleanup = () => {
-    if (progressTimer) clearInterval(progressTimer);
     window.astroStarMediaProgress = null;
     window.astroStarMediaState = null;
     try { window.AstroStarMainBridge.stopMedia(); } catch (_) {}
