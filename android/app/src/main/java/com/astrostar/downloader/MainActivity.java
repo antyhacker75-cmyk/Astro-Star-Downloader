@@ -271,7 +271,7 @@ public class MainActivity extends BridgeActivity {
     // ============================================================
     // LICENSE CHECK
     // ============================================================
-    private String getDeviceId() {
+    private String getAstroStarDeviceId() {
         SharedPreferences prefs = getSharedPreferences("astrostar_device", MODE_PRIVATE);
         String id = prefs.getString("device_id", null);
         if (id == null) {
@@ -284,7 +284,7 @@ public class MainActivity extends BridgeActivity {
     private void checkLicense() {
         final String packageName = getPackageName();
         final String appName = getString(R.string.app_name);
-        final String deviceId = getDeviceId();
+        final String deviceId = getAstroStarDeviceId();
 
         new Thread(new Runnable() {
             @Override
@@ -327,7 +327,6 @@ public class MainActivity extends BridgeActivity {
                     }
                 } catch (Exception e) {
                     Log.w(TAG, "License check failed (fail-open): " + e.getMessage());
-                    // Fail-open on network error so offline users aren't locked out
                 } finally {
                     if (conn != null) conn.disconnect();
                 }
@@ -370,10 +369,8 @@ public class MainActivity extends BridgeActivity {
         final String finalOwnerTg = ownerTg;
         final String finalPackageName = getPackageName();
         final String finalAppName = getString(R.string.app_name);
-        final String finalDeviceId = getDeviceId();
-        final String finalStatus = status;
+        final String finalDeviceId = getAstroStarDeviceId();
 
-        // Root container
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(24), dp(28), dp(24), dp(20));
@@ -383,7 +380,6 @@ public class MainActivity extends BridgeActivity {
         bg.setStroke(dp(1), Color.parseColor("#1f1f24"));
         root.setBackground(bg);
 
-        // Icon circle
         TextView iconView = new TextView(this);
         GradientDrawable iconBg = new GradientDrawable();
         iconBg.setShape(GradientDrawable.OVAL);
@@ -399,7 +395,6 @@ public class MainActivity extends BridgeActivity {
         iconView.setLayoutParams(iconLp);
         root.addView(iconView);
 
-        // Title
         TextView title = new TextView(this);
         title.setText(titleText);
         title.setTextColor(Color.WHITE);
@@ -412,7 +407,6 @@ public class MainActivity extends BridgeActivity {
         title.setLayoutParams(titleLp);
         root.addView(title);
 
-        // Message
         TextView msgView = new TextView(this);
         msgView.setText(message != null && !message.isEmpty() ? message
                 : "This app is not authorized to run on this device.");
@@ -426,7 +420,6 @@ public class MainActivity extends BridgeActivity {
         msgView.setLayoutParams(msgLp);
         root.addView(msgView);
 
-        // Package info
         TextView infoView = new TextView(this);
         infoView.setText("Package: " + finalPackageName + "\nDevice: " +
                 finalDeviceId.substring(0, Math.min(16, finalDeviceId.length())) + "…");
@@ -439,7 +432,6 @@ public class MainActivity extends BridgeActivity {
         infoView.setLayoutParams(infoLp);
         root.addView(infoView);
 
-        // Request Access button (only for pending)
         if ("pending".equals(status) || status.isEmpty() || "error".equals(status)) {
             Button reqBtn = new Button(this);
             reqBtn.setText("Request Access");
@@ -472,7 +464,6 @@ public class MainActivity extends BridgeActivity {
             root.addView(reqBtn);
         }
 
-        // Contact Owner button
         if (finalOwnerTg != null && !finalOwnerTg.isEmpty()) {
             Button tgBtn = new Button(this);
             tgBtn.setText("Contact Owner on Telegram");
@@ -502,7 +493,6 @@ public class MainActivity extends BridgeActivity {
             root.addView(tgBtn);
         }
 
-        // Close App button
         Button closeBtn = new Button(this);
         closeBtn.setText("Close App");
         closeBtn.setTextColor(Color.parseColor("#a1a1aa"));
@@ -525,7 +515,6 @@ public class MainActivity extends BridgeActivity {
         });
         root.addView(closeBtn);
 
-        // Scroll wrapper
         ScrollView scroll = new ScrollView(this);
         scroll.addView(root);
 
