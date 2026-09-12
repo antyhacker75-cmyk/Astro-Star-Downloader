@@ -51,19 +51,20 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
-        <!-- ⭐ NEW: Native audio playback service -->
         <service
-            android:name="us.mediagrid.capacitorjs.plugins.nativeaudio.AudioPlayerService"
-            android:description="@string/audio_player_service_description"
-            android:foregroundServiceType="mediaPlayback"
+            android:name=".MediaPlaybackService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
+        <receiver android:name="androidx.media.session.MediaButtonReceiver"
             android:exported="true">
             <intent-filter>
-                <action android:name="androidx.media3.session.MediaSessionService"/>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
-        </service>
+        </receiver>
     </application>
 
-    <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
