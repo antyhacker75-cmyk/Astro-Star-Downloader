@@ -69,20 +69,6 @@ public class MainActivity extends BridgeActivity {
         }
 
         @JavascriptInterface
-        public void seekMedia(final int positionMs) {
-            try {
-                Intent intent = new Intent(MainActivity.this, MediaPlaybackService.class);
-                intent.setAction(MediaPlaybackService.ACTION_PLAY);
-                // We'll use a dedicated action for seek
-                // Send seek as broadcast to the service
-                // Simplest: send a new intent through media session callback
-                // But it's easier to just start service with a seek intent
-                intent.putExtra("seek", positionMs);
-                MainActivity.this.startService(intent);
-            } catch (Exception e) { e.printStackTrace(); }
-        }
-
-        @JavascriptInterface
         public String getPendingHistoryList() {
             try {
                 SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
@@ -221,7 +207,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         if (instance == this) instance = null;
         super.onDestroy();
     }
