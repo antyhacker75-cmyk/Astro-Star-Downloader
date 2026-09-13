@@ -1,275 +1,701 @@
-/* modern.css — visual polish only. Loads AFTER style.css.
-   Does not touch layout, positioning, or sizing. */
+/* modern.css — iOS 26 Liquid Glass theme.
+   Visual polish only. Does not touch layout, positioning, or sizing.
+   Loads AFTER style.css. */
+
+/* ================================================================
+   1. DESIGN TOKENS
+   ================================================================ */
 
 :root {
-  /* Colors — cool indigo palette */
-  --bg-color: #f6f7fb;
-  --surface: #ffffff;
-  --surface-hover: #f1f3f9;
-  --primary: #4f46e5;
-  --primary-rgb: 79, 70, 229;
-  --primary-hover: #4338ca;
-  --on-primary: #ffffff;
-  --text-main: #1e293b;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --danger: #ef4444;
-  --success: #10b981;
+  /* Background */
+  --bg-color: #eef0f7;
 
-  /* Softer corners */
-  --radius-sm: 8px;
-  --radius-l: 12px;
-  --radius-xl: 16px;
+  /* Glass surfaces — translucent, so backdrop-filter can show through */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-strong: rgba(255, 255, 255, 0.72);
+  --glass-bg-soft: rgba(255, 255, 255, 0.35);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-border-soft: rgba(255, 255, 255, 0.45);
+  --glass-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 8px 32px rgba(31, 38, 135, 0.08),
+    0 2px 6px rgba(31, 38, 135, 0.04);
+
+  /* Accent — iOS violet/indigo */
+  --primary: #5856d6;
+  --primary-rgb: 88, 86, 214;
+  --primary-hover: #4644b8;
+  --primary-soft: rgba(88, 86, 214, 0.12);
+  --on-primary: #ffffff;
+
+  /* Text */
+  --text-main: #1c1c1e;
+  --text-secondary: #5c5c63;
+  --text-muted: #8e8e93;
+  --on-primary-text: #ffffff;
+
+  /* Semantic */
+  --danger: #ff3b30;
+  --success: #34c759;
+  --warning: #ff9500;
+
+  /* Radii — iOS squircle feel */
+  --radius-sm: 10px;
+  --radius-l: 16px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
   --radius-pill: 999px;
 
-  /* Soft elevation */
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
-  --shadow-lg: 0 8px 28px rgba(15, 23, 42, 0.10);
-  --shadow-glow: 0 8px 24px rgba(79, 70, 229, 0.25);
+  /* Motion */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-fast: 0.18s;
+  --dur: 0.28s;
 }
 
 [data-theme="dark"] {
-  --bg-color: #0f1117;
-  --surface: #1a1d27;
-  --surface-hover: #232736;
-  --primary: #818cf8;
-  --primary-rgb: 129, 140, 248;
-  --primary-hover: #a5b4fc;
-  --on-primary: #0f1117;
-  --text-main: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --border: #2d3340;
-  --border-strong: #3b4252;
+  --bg-color: #0a0a0f;
+
+  --glass-bg: rgba(28, 28, 34, 0.55);
+  --glass-bg-strong: rgba(36, 36, 44, 0.72);
+  --glass-bg-soft: rgba(28, 28, 34, 0.35);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-border-soft: rgba(255, 255, 255, 0.09);
+  --glass-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.10) inset,
+    0 -1px 0 rgba(255, 255, 255, 0.03) inset,
+    0 8px 32px rgba(0, 0, 0, 0.45),
+    0 2px 6px rgba(0, 0, 0, 0.25);
+
+  --primary: #7d7aff;
+  --primary-rgb: 125, 122, 255;
+  --primary-hover: #9a97ff;
+  --primary-soft: rgba(125, 122, 255, 0.18);
+  --on-primary: #0a0a0f;
+
+  --text-main: #f2f2f7;
+  --text-secondary: #aeaeb2;
+  --text-muted: #6c6c70;
 }
 
-/* Inputs — soft rounded, focus ring */
-input[type="text"] {
+/* ================================================================
+   2. COLORFUL BACKGROUND — gives the glass something to blur
+   ================================================================ */
+
+body {
+  background-color: var(--bg-color) !important;
+  background-image:
+    radial-gradient(at 15% 10%, rgba(120, 119, 198, 0.32) 0px, transparent 55%),
+    radial-gradient(at 85% 8%, rgba(255, 149, 0, 0.22) 0px, transparent 50%),
+    radial-gradient(at 78% 88%, rgba(0, 199, 190, 0.26) 0px, transparent 55%),
+    radial-gradient(at 12% 92%, rgba(255, 59, 48, 0.18) 0px, transparent 50%) !important;
+  background-attachment: fixed !important;
+}
+
+[data-theme="dark"] body {
+  background-image:
+    radial-gradient(at 15% 10%, rgba(88, 86, 214, 0.28) 0px, transparent 55%),
+    radial-gradient(at 85% 8%, rgba(255, 149, 0, 0.14) 0px, transparent 50%),
+    radial-gradient(at 78% 88%, rgba(0, 199, 190, 0.16) 0px, transparent 55%),
+    radial-gradient(at 12% 92%, rgba(255, 59, 48, 0.12) 0px, transparent 50%) !important;
+}
+
+/* ================================================================
+   3. GLASS MIXIN (repeated because CSS has no mixin)
+   ================================================================ */
+
+.glass,
+.input-wrapper,
+.settings-list,
+.media-card,
+.history-item,
+.custom-select,
+.dropdown-menu,
+.chip,
+.settings-menu-item,
+.pdf-btn {
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  background: var(--glass-bg) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow);
+}
+
+/* ================================================================
+   4. HEADER
+   ================================================================ */
+
+header h1 {
+  background: linear-gradient(135deg, var(--primary) 0%, #af52de 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+
+header p {
+  color: var(--text-secondary);
+}
+
+/* ================================================================
+   5. INPUT
+   ================================================================ */
+
+.input-wrapper {
   border-radius: var(--radius-l) !important;
-  border-color: var(--border) !important;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  padding: 4px;
 }
 
-input[type="text"]:focus {
-  border-color: var(--primary) !important;
-  box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.12) !important;
-}
-
-/* Analyze button — gradient, glow */
-#downloadBtn {
-  background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%) !important;
+input[type="text"] {
+  background: transparent !important;
   border: none !important;
   border-radius: var(--radius-l) !important;
+  color: var(--text-main);
+  box-shadow: none !important;
+}
+
+input[type="text"]::placeholder {
+  color: var(--text-muted);
+}
+
+.input-wrapper:focus-within {
+  border-color: rgba(var(--primary-rgb), 0.55) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 0 0 4px rgba(var(--primary-rgb), 0.16),
+    0 8px 32px rgba(31, 38, 135, 0.08) !important;
+}
+
+textarea.batch-url-textarea {
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-main);
+}
+
+.input-action-btn {
+  color: var(--text-secondary) !important;
+  border-radius: var(--radius-sm) !important;
+  transition: background var(--dur-fast) var(--ease),
+              color var(--dur-fast) var(--ease);
+}
+
+.input-action-btn:active {
+  background: var(--primary-soft) !important;
+  color: var(--primary) !important;
+}
+
+/* ================================================================
+   6. ANALYZE BUTTON — iOS liquid glass press
+   NO transform, NO hover lift. Only opacity + inset shadow on press.
+   This eliminates the touch-flicker bug.
+   ================================================================ */
+
+#downloadBtn {
+  background: linear-gradient(135deg, var(--primary) 0%, #af52de 100%) !important;
+  border: 0.5px solid rgba(255, 255, 255, 0.35) !important;
+  border-radius: var(--radius-l) !important;
   color: var(--on-primary) !important;
-  box-shadow: var(--shadow-glow) !important;
-  transition: transform 0.15s, box-shadow 0.15s !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.12) inset,
+    0 6px 20px rgba(var(--primary-rgb), 0.32),
+    0 2px 6px rgba(var(--primary-rgb), 0.18) !important;
+  transition: filter var(--dur-fast) var(--ease),
+              box-shadow var(--dur-fast) var(--ease),
+              transform var(--dur-fast) var(--ease) !important;
+  transform: none !important;
 }
 
-#downloadBtn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 32px rgba(var(--primary-rgb), 0.35) !important;
-}
-
+/* Press state — no transform, just inset shadow + reduced glow */
 #downloadBtn:active {
-  transform: translateY(0);
+  filter: brightness(0.92);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 2px 6px rgba(var(--primary-rgb), 0.20),
+    0 0 0 rgba(var(--primary-rgb), 0) !important;
+  transform: none !important;
+  transition-duration: 0.08s !important;
 }
 
-/* Header — gradient text */
-header h1 {
-  background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Desktop only — subtle hover that can't stick on mobile */
+@media (hover: hover) and (pointer: fine) {
+  #downloadBtn:hover {
+    filter: brightness(1.04);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.45) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.12) inset,
+      0 8px 28px rgba(var(--primary-rgb), 0.40),
+      0 2px 8px rgba(var(--primary-rgb), 0.24) !important;
+  }
 }
 
-/* Platform chips — soft shadow, hover lift */
+/* ================================================================
+   7. CHIPS
+   ================================================================ */
+
 .chip {
   border-radius: var(--radius-pill) !important;
-  border-color: var(--border) !important;
-  background: var(--surface) !important;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  color: var(--text-main);
+  transition: background var(--dur-fast) var(--ease),
+              color var(--dur-fast) var(--ease);
 }
 
-.chip:hover {
-  border-color: var(--primary) !important;
-  color: var(--primary);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+.chip:active {
+  background: var(--primary-soft) !important;
+  color: var(--primary) !important;
 }
 
-/* Settings cards */
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover {
+    border-color: rgba(var(--primary-rgb), 0.45) !important;
+    color: var(--primary);
+  }
+}
+
+/* ================================================================
+   8. CARDS / LISTS / PANELS
+   ================================================================ */
+
 .settings-list {
   border-radius: var(--radius-xl) !important;
-  border-color: var(--border) !important;
-  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 
 .settings-item {
-  border-bottom-color: var(--border) !important;
+  border-bottom: 0.5px solid var(--glass-border-soft) !important;
+  background: transparent !important;
+  transition: background var(--dur-fast) var(--ease);
 }
 
-.settings-item:hover {
-  background-color: var(--surface-hover) !important;
+.settings-item:active {
+  background: rgba(var(--primary-rgb), 0.10) !important;
 }
 
-/* Media card */
 .media-card {
   border-radius: var(--radius-xl) !important;
-  border-color: var(--border) !important;
-  box-shadow: var(--shadow-md);
+  overflow: hidden;
 }
 
-/* History thumbnails */
+/* ================================================================
+   9. HISTORY
+   ================================================================ */
+
+.history-item {
+  border-radius: var(--radius-l) !important;
+  border: 0.5px solid var(--glass-border-soft) !important;
+  margin-bottom: 8px;
+  background: var(--glass-bg-soft) !important;
+  box-shadow: var(--glass-shadow);
+  transition: background var(--dur-fast) var(--ease);
+}
+
+.history-item:active {
+  background: var(--glass-bg) !important;
+}
+
 .history-thumb-container {
   border-radius: var(--radius-l) !important;
-  border-color: var(--border) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  overflow: hidden;
+  background: var(--glass-bg-soft) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
-/* History items */
-.history-item {
-  border-bottom-color: var(--border) !important;
+.history-info h3 {
+  color: var(--text-main);
 }
 
-.history-item:hover {
-  background-color: var(--surface-hover) !important;
+.history-info p {
+  color: var(--text-secondary);
 }
 
-/* Delete button — red with glow */
-.delete-item-btn {
-  background: var(--danger) !important;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
-  border-radius: 50% !important;
-}
+/* ================================================================
+   10. BUTTONS — edit / done / clear / delete
+   All use the same no-flicker press pattern.
+   ================================================================ */
 
-/* Edit / Done / Clear buttons */
-.edit-btn {
-  border-radius: var(--radius-l) !important;
-  border-color: var(--border) !important;
-  transition: all 0.15s;
-}
-
-.edit-btn:hover {
-  border-color: var(--primary) !important;
-  color: var(--primary);
-}
-
+.edit-btn,
+.clear-all-btn,
 .done-btn {
-  background: linear-gradient(135deg, var(--primary), #8b5cf6) !important;
-  border-radius: var(--radius-l) !important;
-  border: none !important;
-  color: var(--on-primary) !important;
+  border-radius: var(--radius-pill) !important;
+  transition: filter var(--dur-fast) var(--ease),
+              background var(--dur-fast) var(--ease),
+              color var(--dur-fast) var(--ease),
+              border-color var(--dur-fast) var(--ease) !important;
+  transform: none !important;
+}
+
+.edit-btn {
+  background: var(--glass-bg-strong) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  color: var(--text-main) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 4px 14px rgba(31, 38, 135, 0.06);
+}
+
+.edit-btn:active {
+  filter: brightness(0.95);
 }
 
 .clear-all-btn {
-  border-radius: var(--radius-l) !important;
-  border-color: var(--border) !important;
+  background: var(--glass-bg-strong) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  color: var(--text-secondary) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
 }
 
-.clear-all-btn:hover {
-  border-color: var(--danger) !important;
+.clear-all-btn:active {
+  background: rgba(255, 59, 48, 0.14) !important;
   color: var(--danger) !important;
-  background: rgba(239, 68, 68, 0.08) !important;
+  border-color: rgba(255, 59, 48, 0.4) !important;
+  filter: brightness(0.95);
 }
 
-/* Dropdowns — frosted glass */
-.dropdown-menu {
-  border-radius: var(--radius-l) !important;
-  border-color: var(--border) !important;
-  box-shadow: var(--shadow-lg) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+.done-btn {
+  background: linear-gradient(135deg, var(--primary), #af52de) !important;
+  border: 0.5px solid rgba(255, 255, 255, 0.3) !important;
+  color: var(--on-primary) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 4px 14px rgba(var(--primary-rgb), 0.28);
 }
 
-.dropdown-item:hover {
-  background: rgba(var(--primary-rgb), 0.08) !important;
+.done-btn:active {
+  filter: brightness(0.92);
 }
+
+.delete-item-btn {
+  background: linear-gradient(135deg, #ff453a, #ff3b30) !important;
+  border: 0.5px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 4px 14px rgba(255, 59, 48, 0.35) !important;
+  transform: none !important;
+  transition: filter var(--dur-fast) var(--ease) !important;
+}
+
+.delete-item-btn:active {
+  filter: brightness(0.88);
+}
+
+/* Desktop hover — only fires where it can't stick */
+@media (hover: hover) and (pointer: fine) {
+  .edit-btn:hover {
+    border-color: rgba(var(--primary-rgb), 0.4) !important;
+    color: var(--primary) !important;
+  }
+
+  .clear-all-btn:hover {
+    border-color: rgba(255, 59, 48, 0.4) !important;
+    color: var(--danger) !important;
+  }
+
+  .done-btn:hover {
+    filter: brightness(1.05);
+  }
+
+  .delete-item-btn:hover {
+    filter: brightness(1.08);
+  }
+}
+
+/* ================================================================
+   11. DROPDOWN / SELECT
+   ================================================================ */
 
 .custom-select {
   border-radius: var(--radius-l) !important;
-  border-color: var(--border) !important;
+  color: var(--text-main);
+  transition: border-color var(--dur-fast) var(--ease);
 }
 
-.custom-select:hover {
-  border-color: var(--primary) !important;
+.custom-select:active {
+  border-color: rgba(var(--primary-rgb), 0.55) !important;
 }
 
-/* Download list items */
+.dropdown-menu {
+  border-radius: var(--radius-l) !important;
+  background: var(--glass-bg-strong) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 12px 40px rgba(31, 38, 135, 0.18),
+    0 4px 12px rgba(31, 38, 135, 0.08) !important;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  color: var(--text-main) !important;
+  transition: background var(--dur-fast) var(--ease);
+}
+
+.dropdown-item:active {
+  background: rgba(var(--primary-rgb), 0.12) !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dropdown-item:hover {
+    background: rgba(var(--primary-rgb), 0.08) !important;
+  }
+}
+
+/* ================================================================
+   12. DOWNLOAD LIST (dl-item)
+   ================================================================ */
+
 .dl-item {
-  border-bottom-color: var(--border) !important;
+  background: transparent !important;
+  border-bottom: 0.5px solid var(--glass-border-soft) !important;
+  color: var(--text-main);
+  transition: background var(--dur-fast) var(--ease);
 }
 
-.dl-item:hover {
-  background-color: var(--surface-hover) !important;
+.dl-item:active {
+  background: rgba(var(--primary-rgb), 0.10) !important;
 }
 
 .dl-item .dl-badge {
-  background: linear-gradient(135deg, var(--primary), #8b5cf6) !important;
+  background: linear-gradient(135deg, var(--primary), #af52de) !important;
+  border: 0.5px solid rgba(255, 255, 255, 0.3) !important;
   border-radius: var(--radius-pill) !important;
   color: var(--on-primary) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 2px 8px rgba(var(--primary-rgb), 0.3);
 }
 
-/* PDF button */
+.dl-item .track-title {
+  color: var(--text-main);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dl-item:hover {
+    background: rgba(255, 255, 255, 0.35) !important;
+  }
+}
+
+/* ================================================================
+   13. PDF BUTTON
+   ================================================================ */
+
 .pdf-btn {
   border-radius: var(--radius-l) !important;
-  border-color: var(--border) !important;
+  color: var(--text-main) !important;
+  transition: background var(--dur-fast) var(--ease),
+              border-color var(--dur-fast) var(--ease) !important;
 }
 
-.pdf-btn:hover {
-  border-color: var(--primary) !important;
-  box-shadow: var(--shadow-glow);
+.pdf-btn:active {
+  border-color: rgba(var(--primary-rgb), 0.5) !important;
 }
 
-/* Progress bar */
+/* ================================================================
+   14. MODAL OVERLAY + GLASS CARD
+   ================================================================ */
+
+.modal-overlay {
+  background: rgba(15, 15, 25, 0.42) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+}
+
+.close-card {
+  background: rgba(255, 255, 255, 0.55) !important;
+  color: var(--text-main) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 4px 14px rgba(0, 0, 0, 0.15);
+  transition: filter var(--dur-fast) var(--ease) !important;
+}
+
+.close-card:active {
+  filter: brightness(0.9);
+}
+
+[data-theme="dark"] .close-card {
+  background: rgba(40, 40, 48, 0.65) !important;
+  color: #fff !important;
+}
+
+/* ================================================================
+   15. SLIDER BUTTONS
+   ================================================================ */
+
+.slide-btn {
+  background: rgba(255, 255, 255, 0.45) !important;
+  color: var(--text-main) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 4px 14px rgba(0, 0, 0, 0.12);
+  transition: filter var(--dur-fast) var(--ease) !important;
+  transform: none !important;
+}
+
+.slide-btn:active {
+  filter: brightness(0.88);
+}
+
+[data-theme="dark"] .slide-btn {
+  background: rgba(40, 40, 48, 0.55) !important;
+  color: #fff !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .slide-btn:hover {
+    background: rgba(255, 255, 255, 0.65) !important;
+  }
+}
+
+.slide-indicator {
+  background: rgba(255, 255, 255, 0.55) !important;
+  color: var(--text-main) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+}
+
+[data-theme="dark"] .slide-indicator {
+  background: rgba(40, 40, 48, 0.65) !important;
+  color: #fff !important;
+}
+
+/* ================================================================
+   16. PROGRESS BAR
+   ================================================================ */
+
+.progress-container {
+  background: rgba(120, 120, 128, 0.16) !important;
+  border-radius: var(--radius-pill) !important;
+  overflow: hidden;
+}
+
 .progress-bar {
-  background: linear-gradient(90deg, var(--primary), #8b5cf6) !important;
+  background: linear-gradient(90deg, var(--primary), #af52de) !important;
   border-radius: var(--radius-pill) !important;
 }
 
-/* Nav active indicator — only add color, don't reposition */
+/* ================================================================
+   17. SETTINGS MENU ITEMS (main page)
+   ================================================================ */
+
+.settings-menu-item {
+  border-bottom: 0.5px solid var(--glass-border-soft) !important;
+  background: transparent !important;
+  transition: background var(--dur-fast) var(--ease);
+}
+
+.settings-menu-item:active {
+  background: rgba(var(--primary-rgb), 0.10) !important;
+}
+
+.menu-icon {
+  background: linear-gradient(135deg,
+              rgba(var(--primary-rgb), 0.18),
+              rgba(175, 82, 222, 0.18)) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  color: var(--primary) !important;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.menu-title { color: var(--text-main); }
+.menu-desc  { color: var(--text-secondary); }
+
+/* ================================================================
+   18. SUB-PAGE HEADER
+   ================================================================ */
+
+.back-btn-settings {
+  background: var(--glass-bg-strong) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  color: var(--text-main) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 4px 14px rgba(31, 38, 135, 0.06);
+  transition: filter var(--dur-fast) var(--ease) !important;
+}
+
+.back-btn-settings:active {
+  filter: brightness(0.92);
+}
+
+.sub-page-header h3 {
+  color: var(--text-main);
+}
+
+/* ================================================================
+   19. NAV — iOS floating glass bar
+   CRITICAL: does NOT change position. Only glass appearance.
+   ================================================================ */
+
+.nav-item {
+  color: var(--text-secondary);
+  transition: color var(--dur-fast) var(--ease);
+}
+
 .nav-item.active {
   color: var(--primary) !important;
 }
 
-/* Modals */
-.modal-overlay {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+.nav-item.active::after {
+  background: linear-gradient(90deg, var(--primary), #af52de) !important;
+  border-radius: var(--radius-pill) !important;
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.4);
 }
 
-.close-card {
-  border-radius: 50% !important;
-  background: rgba(15, 23, 42, 0.55) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
+/* ================================================================
+   20. PAGE TRANSITIONS
+   ================================================================ */
 
-.close-card:hover {
-  background: var(--primary) !important;
-}
-
-/* Slider buttons */
-.slide-btn {
-  border-radius: 50% !important;
-  background: rgba(15, 23, 42, 0.5) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.slide-btn:hover {
-  background: rgba(15, 23, 42, 0.8) !important;
-}
-
-/* Page transitions */
 .page-content:not(.hidden) {
-  animation: astroFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: astroGlassIn 0.4s var(--ease);
 }
 
-@keyframes astroFadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+@keyframes astroGlassIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* ================================================================
+   21. SKELETON LOADER
+   ================================================================ */
+
+.skeleton-card {
+  background: var(--glass-bg-soft) !important;
+  border: 0.5px solid var(--glass-border-soft) !important;
+  border-radius: var(--radius-xl) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+.skeleton-thumb,
+.skeleton-line {
+  background: linear-gradient(
+    90deg,
+    rgba(120, 120, 128, 0.10) 25%,
+    rgba(120, 120, 128, 0.20) 50%,
+    rgba(120, 120, 128, 0.10) 75%
+  ) !important;
+  background-size: 200% 100% !important;
+  animation: skeleton-loading 1.5s infinite linear !important;
+}
+
+#loaderText {
+  color: var(--text-secondary);
 }
