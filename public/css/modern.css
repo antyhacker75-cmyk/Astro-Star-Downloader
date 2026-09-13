@@ -260,30 +260,31 @@ body {
 }
 
 /* ================================================================
-   6. ANALYZE BUTTON — iOS 26 Liquid Glass prominent
+   6. ANALYZE BUTTON — real iOS 26 Liquid Glass
+   Translucent tinted fill so the background shows through the blur.
    ================================================================ */
 
 #downloadBtn {
   position: relative;
   background: linear-gradient(135deg,
-              rgba(var(--primary-rgb), 0.92) 0%,
-              rgba(175, 82, 222, 0.92) 100%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
-  backdrop-filter: blur(28px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+              rgba(var(--primary-rgb), 0.48) 0%,
+              rgba(175, 82, 222, 0.48) 100%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(220%) !important;
+  backdrop-filter: blur(40px) saturate(220%) !important;
+  border: 0.5px solid rgba(255, 255, 255, 0.42) !important;
   border-radius: var(--radius-l) !important;
-  color: var(--on-primary) !important;
-  letter-spacing: 0.4px;
-  font-weight: 700;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
   overflow: hidden;
   isolation: isolate;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.55) inset,
     0 -1px 0 rgba(0, 0, 0, 0.18) inset,
-    0 10px 30px rgba(var(--primary-rgb), 0.38),
-    0 4px 10px rgba(var(--primary-rgb), 0.22) !important;
-  transition: filter var(--dur-fast) var(--ease),
-              box-shadow var(--dur-fast) var(--ease) !important;
+    0 10px 30px rgba(var(--primary-rgb), 0.28),
+    0 4px 10px rgba(var(--primary-rgb), 0.16) !important;
+  transition: filter 0.18s cubic-bezier(0.32, 0.72, 0, 1),
+              box-shadow 0.18s cubic-bezier(0.32, 0.72, 0, 1) !important;
   transform: none !important;
 }
 
@@ -293,9 +294,9 @@ body {
   inset: 0;
   border-radius: inherit;
   background: linear-gradient(180deg,
-              rgba(255, 255, 255, 0.28) 0%,
-              rgba(255, 255, 255, 0.06) 40%,
-              rgba(255, 255, 255, 0) 60%);
+              rgba(255, 255, 255, 0.30) 0%,
+              rgba(255, 255, 255, 0.08) 45%,
+              rgba(255, 255, 255, 0) 65%);
   pointer-events: none;
   z-index: -1;
 }
@@ -304,7 +305,7 @@ body {
   filter: brightness(0.92);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.35) inset,
-    0 4px 12px rgba(var(--primary-rgb), 0.22),
+    0 4px 12px rgba(var(--primary-rgb), 0.16),
     0 0 0 rgba(var(--primary-rgb), 0) !important;
   transition-duration: 0.08s !important;
   transform: none !important;
@@ -316,9 +317,16 @@ body {
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.6) inset,
       0 -1px 0 rgba(0, 0, 0, 0.18) inset,
-      0 14px 40px rgba(var(--primary-rgb), 0.5),
-      0 4px 12px rgba(var(--primary-rgb), 0.3) !important;
+      0 14px 40px rgba(var(--primary-rgb), 0.36),
+      0 4px 12px rgba(var(--primary-rgb), 0.22) !important;
   }
+}
+
+[data-theme="dark"] #downloadBtn {
+  background: linear-gradient(135deg,
+              rgba(var(--primary-rgb), 0.55) 0%,
+              rgba(175, 82, 222, 0.55) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
 }
 
 /* ================================================================
@@ -586,7 +594,6 @@ input[type="text"]::placeholder {
   to   { opacity: 1; transform: scale(1); }
 }
 
-/* Dialog header */
 .modal-header,
 .info-header,
 .confirm-header {
@@ -610,7 +617,6 @@ input[type="text"]::placeholder {
   margin: 0 !important;
 }
 
-/* Dialog body */
 .modal-body,
 .info-body,
 .confirm-body {
@@ -661,7 +667,6 @@ input[type="text"]::placeholder {
   transition: background 0.15s ease, color 0.15s ease !important;
 }
 
-/* Force any icon inside to be dark */
 .modal-close *,
 .close-modal *,
 .info-close *,
@@ -695,15 +700,17 @@ input[type="text"]::placeholder {
 }
 
 /* ----------------------------------------------------------------
-   Primary modal buttons — iOS 26 tinted glass (no solid fill)
+   Primary modal buttons — iOS 26 tinted glass
+   NOTE: This selector must NOT catch .slide-btn. That's why we
+   exclude the slider buttons explicitly.
    ---------------------------------------------------------------- */
 
-.modal-content button:not(.modal-close):not(.close-modal):not(.info-close),
-.info-modal button:not(.modal-close):not(.close-modal):not(.info-close),
-.confirm-modal button:not(.modal-close):not(.close-modal):not(.info-close),
-#modalContent button:not(.modal-close):not(.close-modal):not(.info-close),
-#infoModal button:not(.modal-close):not(.close-modal):not(.info-close),
-.media-card button:not(.close-card),
+.modal-content button:not(.modal-close):not(.close-modal):not(.info-close):not(.slide-btn),
+.info-modal button:not(.modal-close):not(.close-modal):not(.info-close):not(.slide-btn),
+.confirm-modal button:not(.modal-close):not(.close-modal):not(.info-close):not(.slide-btn),
+#modalContent button:not(.modal-close):not(.close-modal):not(.info-close):not(.slide-btn),
+#infoModal button:not(.modal-close):not(.close-modal):not(.info-close):not(.slide-btn),
+.media-card button:not(.close-card):not(.slide-btn),
 .redownload-btn,
 .re-download-btn,
 .download-again-btn,
@@ -737,11 +744,10 @@ input[type="text"]::placeholder {
   cursor: pointer;
 }
 
-/* Remove any gradient sheen — glass doesn't need it */
-.modal-content button:not(.modal-close):not(.close-modal):not(.info-close)::before,
-.info-modal button:not(.modal-close):not(.close-modal):not(.info-close)::before,
-#modalContent button:not(.modal-close):not(.close-modal):not(.info-close)::before,
-.media-card button:not(.close-card)::before,
+.modal-content button:not(.modal-close):not(.close-modal):not(.info-close):not(.slide-btn)::before,
+.info-modal button:not(.modal-close):not(.close-modal):not(.info-close):not(.slide-btn)::before,
+#modalContent button:not(.modal-close):not(.close-modal):not(.info-close):not(.slide-btn)::before,
+.media-card button:not(.close-card):not(.slide-btn)::before,
 .redownload-btn::before,
 .re-download-btn::before,
 .action-btn::before,
@@ -751,11 +757,10 @@ input[type="text"]::placeholder {
   display: none !important;
 }
 
-/* Press — deeper tint, softer shadow */
-.modal-content button:not(.modal-close):not(.close-modal):not(.info-close):active,
-.info-modal button:not(.modal-close):not(.close-modal):not(.info-close):active,
-#modalContent button:not(.modal-close):not(.close-modal):not(.info-close):active,
-.media-card button:not(.close-card):active,
+.modal-content button:not(.modal-close):not(.close-modal):not(.info-close):not(.slide-btn):active,
+.info-modal button:not(.modal-close):not(.close-modal):not(.info-close):not(.slide-btn):active,
+#modalContent button:not(.modal-close):not(.close-modal):not(.info-close):not(.slide-btn):active,
+.media-card button:not(.close-card):not(.slide-btn):active,
 .redownload-btn:active,
 .re-download-btn:active,
 .action-btn:active,
@@ -768,8 +773,7 @@ input[type="text"]::placeholder {
   transition-duration: 0.08s !important;
 }
 
-/* Dark mode — brighter tint so it reads */
-[data-theme="dark"] .modal-content button:not(.modal-close):not(.close-modal):not(.info-close),
+[data-theme="dark"] .modal-content button:not(.modal-close):not(.close-modal):not(.info-close):not(.slide-btn),
 [data-theme="dark"] .redownload-btn,
 [data-theme="dark"] .action-btn,
 [data-theme="dark"] .modal-btn {
@@ -778,7 +782,6 @@ input[type="text"]::placeholder {
   color: var(--primary) !important;
 }
 
-/* Cancel / secondary buttons — neutral glass */
 .modal-actions button:first-child:not(:only-child),
 .cancel-btn,
 .modal-cancel-btn,
@@ -793,7 +796,6 @@ input[type="text"]::placeholder {
     0 4px 14px rgba(31, 38, 135, 0.06) !important;
 }
 
-/* Checkbox row inside dialog */
 .dont-show-row,
 .info-dont-show {
   display: flex;
@@ -805,7 +807,6 @@ input[type="text"]::placeholder {
   font-size: 0.88rem;
 }
 
-/* Update dialog rows */
 .update-version-row {
   display: flex;
   justify-content: space-between;
@@ -819,7 +820,6 @@ input[type="text"]::placeholder {
   font-weight: 600;
 }
 
-/* Dark mode dialog surface */
 [data-theme="dark"] .modal-content,
 [data-theme="dark"] .confirm-modal,
 [data-theme="dark"] .info-modal,
@@ -830,27 +830,51 @@ input[type="text"]::placeholder {
 }
 
 /* ================================================================
-   16. SLIDER
+   16. SLIDER — prev/next buttons stay small circles
    ================================================================ */
 
+.media-card .slide-btn,
+.slider-nav .slide-btn,
+#slidePrevBtn,
+#slideNextBtn,
+#modalSlidePrevBtn,
+#modalSlideNextBtn,
 .slide-btn {
-  background: rgba(255, 255, 255, 0.45) !important;
-  color: var(--text-main) !important;
-  border: 0.5px solid var(--glass-border) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
+  width: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background: rgba(15, 23, 42, 0.42) !important;
+  color: #ffffff !important;
+  border: 0.5px solid rgba(255, 255, 255, 0.22) !important;
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.7) inset,
-    0 4px 14px rgba(0, 0, 0, 0.12);
-  transition: filter var(--dur-fast) var(--ease) !important;
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 4px 14px rgba(0, 0, 0, 0.18) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
   transform: none !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
 }
 
-.slide-btn:active { filter: brightness(0.88); }
-
-[data-theme="dark"] .slide-btn {
-  background: rgba(40, 40, 48, 0.55) !important;
-  color: #fff !important;
+.media-card .slide-btn:active,
+.slider-nav .slide-btn:active,
+#slidePrevBtn:active,
+#slideNextBtn:active,
+#modalSlidePrevBtn:active,
+#modalSlideNextBtn:active,
+.slide-btn:active {
+  background: rgba(15, 23, 42, 0.70) !important;
+  filter: none !important;
 }
 
 .slide-indicator {
