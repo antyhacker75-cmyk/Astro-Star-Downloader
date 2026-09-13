@@ -9,19 +9,18 @@ import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
 import java.util.Locale;
 
 /**
- * Foreground service that displays a live download progress bar and
- * percentage in the system notification.
+ * Foreground service that shows a determinate progress bar and percentage
+ * in the system notification during media downloads.
  *
- * Called from JS via MainActivity.AstroStarMainBridge:
- *   - startDownloadService(title)         → shows indeterminate bar
- *   - updateDownloadProgress(dl, tot, spd)→ updates bar + %
- *   - stopDownloadService()               → removes notification
+ * Safe for Android 8 → 14+. Does not crash if startForeground is called
+ * multiple times. Does not lock MANAGE_EXTERNAL_STORAGE.
  */
 public class DownloadForegroundService extends Service {
 
@@ -45,19 +44,23 @@ public class DownloadForegroundService extends Service {
     private boolean isForeground = false;
 
     // ============================================================
-    // Static helper so MainActivity can push updates easily
+    // Static helper for MainActivity / other callers
     // ============================================================
 
     public static void pushProgress(Context ctx, long downloaded, long total, String speed) {
-        Intent i = new Intent(ctx, DownloadForegroundService.class);
-        i.setAction(ACTION_UPDATE);
-        i.putExtra(EXTRA_DOWNLOADED, downloaded);
-        i.putExtra(EXTRA_TOTAL, total);
-        if (speed != null) i.putExtra(EXTRA_SPEED, speed);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            ctx.startForegroundService(i);
-        } else {
-            ctx.startService(i);
+        try {
+            Intent i = new Intent(ctx, DownloadForegroundService.class);
+            i.setAction(ACTION_UPDATE);
+            i.putExtra(EXTRA_DOWNLOADED, downloaded);
+            i.putExtra(EXTRA_TOTAL, total);
+            if (speed != null) i.putExtra(EXTRA_SPEED, speed);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ctx.startForegroundService(i);
+            } else {
+                ctx.startService(i);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "pushProgress failed: " + e.getMessage());
         }
     }
 
@@ -73,49 +76,55 @@ public class DownloadForegroundService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        String action = (intent != null && intent.getAction() != null)
-                ? intent.getAction()
-                : ACTION_START;
+        try {
+            String action = (intent != null && intent.getAction() != null)
+                    ? intent.getAction()
+                    : ACTION_START;
 
-        switch (action) {
+            switch (action) {
 
-            case ACTION_UPDATE: {
-                long downloaded = intent.getLongExtra(EXTRA_DOWNLOADED, 0L);
-                long total      = intent.getLongExtra(EXTRA_TOTAL, 0L);
-                String speed    = intent.getStringExtra(EXTRA_SPEED);
-                long now = System.currentTimeMillis();
-                boolean finished = (total > 0 && downloaded >= total);
-                if (!finished && (now - lastUpdateTime) < MIN_UPDATE_INTERVAL_MS) {
+                case ACTION_UPDATE: {
+                    long downloaded = intent.getLongExtra(EXTRA_DOWNLOADED, 0L);
+                    long total      = intent.getLongExtra(EXTRA_TOTAL, 0L);
+                    String speed    = intent.getStringExtra(EXTRA_SPEED);
+
+                    long now = System.currentTimeMillis();
+                    boolean finished = (total > 0 && downloaded >= total);
+                    if (!finished && (now - lastUpdateTime) < MIN_UPDATE_INTERVAL_MS) {
+                        break;
+                    }
+                    lastUpdateTime = now;
+
+                    // Must call startForeground quickly after startForegroundService
+                    updateNotification(downloaded, total, speed, !isForeground);
                     break;
                 }
-                lastUpdateTime = now;
-                updateNotification(downloaded, total, speed, false);
-                break;
-            }
 
-            case ACTION_STOP: {
-                stopForeground(true);
-                stopSelf();
-                return START_NOT_STICKY;
-            }
-
-            case ACTION_START:
-            default: {
-                if (intent != null && intent.hasExtra(EXTRA_TITLE)) {
-                    String t = intent.getStringExtra(EXTRA_TITLE);
-                    if (t != null && !t.isEmpty()) currentTitle = t;
+                case ACTION_STOP: {
+                    stopForegroundCompat();
+                    stopSelf();
+                    return START_NOT_STICKY;
                 }
-                updateNotification(0, 0, null, true);
-                break;
-            }
-        }
 
+                case ACTION_START:
+                default: {
+                    if (intent != null && intent.hasExtra(EXTRA_TITLE)) {
+                        String t = intent.getStringExtra(EXTRA_TITLE);
+                        if (t != null && !t.isEmpty()) currentTitle = t;
+                    }
+                    updateNotification(0, 0, null, true);
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "onStartCommand error", e);
+        }
         return START_NOT_STICKY;
     }
 
     @Override
     public void onDestroy() {
-        stopForeground(true);
+        stopForegroundCompat();
         isForeground = false;
         super.onDestroy();
     }
@@ -126,11 +135,11 @@ public class DownloadForegroundService extends Service {
     }
 
     // ============================================================
-    // Notification builder
+    // Notification building
     // ============================================================
 
     private void updateNotification(long downloaded, long total,
-                                    String speed, boolean indeterminate) {
+                                    String speed, boolean forceForeground) {
 
         NotificationCompat.Builder b = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Astro Star Downloader")
@@ -142,7 +151,8 @@ public class DownloadForegroundService extends Service {
                 .setCategory(NotificationCompat.CATEGORY_PROGRESS)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
 
-        if (indeterminate || total <= 0) {
+        if (total <= 0) {
+            // Indeterminate
             b.setContentText(currentTitle != null ? currentTitle : "Starting…");
             b.setProgress(0, 0, true);
         } else {
@@ -158,26 +168,49 @@ public class DownloadForegroundService extends Service {
         }
 
         Notification n = b.build();
-        promoteOrUpdate(n);
+
+        if (forceForeground || !isForeground) {
+            startForegroundCompat(n);
+            isForeground = true;
+        } else {
+            try {
+                NotificationManager nm =
+                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                if (nm != null) nm.notify(NOTIFICATION_ID, n);
+            } catch (Exception e) {
+                Log.w(TAG, "notify failed: " + e.getMessage());
+            }
+        }
     }
 
-    /**
-     * First call promotes the service to foreground (mandatory on Android 8+).
-     * Later calls just update the existing notification.
-     */
-    private void promoteOrUpdate(Notification n) {
-        if (!isForeground) {
+    private void startForegroundCompat(Notification n) {
+        try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 startForeground(NOTIFICATION_ID, n,
                         ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
             } else {
                 startForeground(NOTIFICATION_ID, n);
             }
-            isForeground = true;
-        } else {
-            NotificationManager nm =
-                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            if (nm != null) nm.notify(NOTIFICATION_ID, n);
+        } catch (Exception e) {
+            Log.e(TAG, "startForeground failed", e);
+            try {
+                // Fallback without type (works on Android 10-13 if type is unsupported)
+                startForeground(NOTIFICATION_ID, n);
+            } catch (Exception e2) {
+                Log.e(TAG, "startForeground fallback failed", e2);
+            }
+        }
+    }
+
+    private void stopForegroundCompat() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                stopForeground(true);
+            } else {
+                stopForeground(true);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "stopForeground failed: " + e.getMessage());
         }
     }
 
@@ -187,19 +220,21 @@ public class DownloadForegroundService extends Service {
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Astro Star Background Download",
-                    NotificationManager.IMPORTANCE_LOW
-            );
-            channel.setDescription("Shows live download progress");
-            channel.setShowBadge(false);
-            channel.enableLights(false);
-            channel.enableVibration(false);
-            channel.setSound(null, null);
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager != null) {
-                manager.createNotificationChannel(channel);
+            try {
+                NotificationChannel channel = new NotificationChannel(
+                        CHANNEL_ID,
+                        "Astro Star Background Download",
+                        NotificationManager.IMPORTANCE_LOW
+                );
+                channel.setDescription("Shows live download progress");
+                channel.setShowBadge(false);
+                channel.enableLights(false);
+                channel.enableVibration(false);
+                channel.setSound(null, null);
+                NotificationManager manager = getSystemService(NotificationManager.class);
+                if (manager != null) manager.createNotificationChannel(channel);
+            } catch (Exception e) {
+                Log.w(TAG, "createNotificationChannel failed: " + e.getMessage());
             }
         }
     }
