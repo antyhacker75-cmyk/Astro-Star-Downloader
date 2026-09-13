@@ -18,8 +18,8 @@ import {
 } from "./core.js";
 
 /* ================================================================
-   PERSISTENT HISTORY FILE (survives uninstall / reinstall)
-   Public path on Android: /storage/emulated/0/Documents/AstroStar/history.json
+   PERSISTENT HISTORY FILE
+   Public path: /storage/emulated/0/Documents/AstroStar/history.json
    ================================================================ */
 
 const HISTORY_KEY       = "astrostar_history";
@@ -27,7 +27,6 @@ const HISTORY_FILE_DIR  = "Documents/AstroStar";
 const HISTORY_FILE_NAME = "history.json";
 const HISTORY_FILE_PATH = `${HISTORY_FILE_DIR}/${HISTORY_FILE_NAME}`;
 
-/** Read the persistent history file. Returns [] if missing/unreadable. */
 async function readHistoryFile() {
   try {
     const res = await Filesystem.readFile({
@@ -42,7 +41,6 @@ async function readHistoryFile() {
   }
 }
 
-/** Write the persistent history file. Creates the folder if needed. */
 async function writeHistoryFile(history) {
   try {
     await Filesystem.mkdir({
@@ -62,7 +60,6 @@ async function writeHistoryFile(history) {
   }
 }
 
-/** Read localStorage mirror. */
 function readHistoryLocal() {
   try {
     const raw = localStorage.getItem(HISTORY_KEY);
@@ -73,7 +70,6 @@ function readHistoryLocal() {
   }
 }
 
-/** Write localStorage mirror. */
 function writeHistoryLocal(history) {
   try {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
@@ -82,31 +78,39 @@ function writeHistoryLocal(history) {
   }
 }
 
-/**
- * Load + merge everything. Call once on startup.
- * Priority: persistent file → localStorage.
- */
-export async function loadPersistentHistory() {
-  const fromFile = await readHistoryFile();
-  const local    = readHistoryLocal();
+/* ================================================================
+   SILENT BOOTSTRAP
+   Runs once when this module is imported. Merges the persistent
+   file into localStorage so app.js's existing readHistory() sees it.
+   app.js does NOT need to be changed.
+   ================================================================ */
 
+let bootstrapPromise = (async () => {
+  const fromFile = await readHistoryFile();
+  if (!fromFile.length) return;
+
+  const local = readHistoryLocal();
   const map = new Map();
+
   for (const item of [...fromFile, ...local]) {
     const key = item.url || item.sourceUrl || item.id;
     if (!key) continue;
     map.set(key, { ...(map.get(key) || {}), ...item });
   }
 
-  let history = Array.from(map.values());
-  history.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  const merged = Array.from(map.values());
+  merged.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-  writeHistoryLocal(history);
-  await writeHistoryFile(history);
-  return history;
+  writeHistoryLocal(merged);
+})();
+
+/** Optional export if you ever want to await the bootstrap manually. */
+export function historyReady() {
+  return bootstrapPromise;
 }
 
 /* ================================================================
-   EXISTING UI HANDLERS (now also write the persistent file)
+   EXISTING UI HANDLERS (unchanged, now also write persistent file)
    ================================================================ */
 
 editHistoryBtn?.addEventListener("click", () => {
@@ -195,7 +199,7 @@ export async function onHistoryDeleteClick(url) {
 }
 
 /* ================================================================
-   FILE SAVED EVENT — now also updates the persistent file
+   FILE SAVED EVENT — unchanged behaviour, plus persistent write
    ================================================================ */
 
 window.addEventListener("astrostar_file_saved", async (e) => {
@@ -287,7 +291,7 @@ window.addEventListener("astrostar_file_saved", async (e) => {
 });
 
 /* ================================================================
-   History Storage Helper — now also writes the persistent file
+   History Storage Helper
    ================================================================ */
 
 export function saveToHistory(result, url) {
@@ -342,7 +346,7 @@ export function saveToHistory(result, url) {
 }
 
 /* ================================================================
-   Auto-Clear Old History (Items > N days) — unchanged
+   Auto-Clear (unchanged)
    ================================================================ */
 
 export async function autoClearOldHistory() {
