@@ -54,7 +54,6 @@ public class MainActivity extends BridgeActivity {
         return instance;
     }
 
-    // ⚠️ CHANGE THIS TO YOUR SERVER URL
     private static final String LICENSE_URL = "https://bitch.x10.mx/adminmusic.php";
 
     private AlertDialog licenseDialog;
@@ -305,14 +304,6 @@ public class MainActivity extends BridgeActivity {
     public void onResume() {
         super.onResume();
 
-        // Re-check storage permission on resume (user may have granted it from Settings)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (!Environment.isExternalStorageManager()) {
-                // Not yet granted — the app will still work for app-private storage,
-                // but public Documents/AstroStar/history.json will fail to write.
-            }
-        }
-
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().postDelayed(new Runnable() {
                 @Override
@@ -332,14 +323,12 @@ public class MainActivity extends BridgeActivity {
 
     private void requestStoragePermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Android 11+ — need MANAGE_EXTERNAL_STORAGE for public Documents/ access
             if (!Environment.isExternalStorageManager()) {
                 try {
                     Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
                     intent.setData(Uri.parse("package:" + getPackageName()));
                     startActivity(intent);
                 } catch (Exception e) {
-                    // Fallback: open the general "All files access" settings page
                     try {
                         Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
                         startActivity(intent);
@@ -349,7 +338,6 @@ public class MainActivity extends BridgeActivity {
                 }
             }
         } else {
-            // Android 10 and below — need WRITE_EXTERNAL_STORAGE
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(
