@@ -505,26 +505,23 @@ export function playCompletionSound() {
     localStorage.getItem("astrostar_download_sound") !== "false";
   if (!isSoundEnabled) return;
 
-  // Single clean chime playback via local audio asset
+  const pack = localStorage.getItem("astrostar_sound_pack") || "default";
+  let soundFile = "./chime-default.wav";
+  if (pack === "soft") soundFile = "./chime-soft.wav";
+  else if (pack === "arcade") soundFile = "./chime-arcade.wav";
+
   try {
-    const chimeEl = document.getElementById("completionChimeAudio");
-    if (chimeEl) {
-      chimeEl.currentTime = 0;
-      chimeEl.volume = 1.0;
-      const p = chimeEl.play();
-      if (p && typeof p.catch === "function") {
-        p.catch(() => {
-          const a = new Audio("./chime.wav");
-          a.volume = 1.0;
-          a.play().catch(() => {});
-        });
-      }
-    } else {
-      const a = new Audio("./chime.wav");
-      a.volume = 1.0;
-      a.play().catch(() => {});
-    }
-  } catch (e) {}
+    const a = new Audio(soundFile);
+    a.volume = 1.0;
+    a.play().catch(() => {
+      // Fallback to legacy chime if the pack file is missing
+      const fallback = new Audio("./chime.wav");
+      fallback.volume = 1.0;
+      fallback.play().catch(() => {});
+    });
+  } catch (e) {
+    console.warn("playCompletionSound failed:", e);
+  }
 
   try {
     triggerHaptic("success");
