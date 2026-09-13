@@ -7,12 +7,10 @@
    ================================================================ */
 
 :root {
-  /* Background */
   --bg-color: #eef0f7;
 
-  /* Glass surfaces — translucent, so backdrop-filter can show through */
   --glass-bg: rgba(255, 255, 255, 0.55);
-  --glass-bg-strong: rgba(255, 255, 255, 0.72);
+  --glass-bg-strong: rgba(255, 255, 255, 0.78);
   --glass-bg-soft: rgba(255, 255, 255, 0.35);
   --glass-border: rgba(255, 255, 255, 0.65);
   --glass-border-soft: rgba(255, 255, 255, 0.45);
@@ -22,32 +20,26 @@
     0 8px 32px rgba(31, 38, 135, 0.08),
     0 2px 6px rgba(31, 38, 135, 0.04);
 
-  /* Accent — iOS violet/indigo */
   --primary: #5856d6;
   --primary-rgb: 88, 86, 214;
   --primary-hover: #4644b8;
   --primary-soft: rgba(88, 86, 214, 0.12);
   --on-primary: #ffffff;
 
-  /* Text */
   --text-main: #1c1c1e;
   --text-secondary: #5c5c63;
   --text-muted: #8e8e93;
-  --on-primary-text: #ffffff;
 
-  /* Semantic */
   --danger: #ff3b30;
   --success: #34c759;
   --warning: #ff9500;
 
-  /* Radii — iOS squircle feel */
   --radius-sm: 10px;
   --radius-l: 16px;
   --radius-xl: 22px;
   --radius-2xl: 28px;
   --radius-pill: 999px;
 
-  /* Motion */
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --dur-fast: 0.18s;
   --dur: 0.28s;
@@ -57,7 +49,7 @@
   --bg-color: #0a0a0f;
 
   --glass-bg: rgba(28, 28, 34, 0.55);
-  --glass-bg-strong: rgba(36, 36, 44, 0.72);
+  --glass-bg-strong: rgba(36, 36, 44, 0.82);
   --glass-bg-soft: rgba(28, 28, 34, 0.35);
   --glass-border: rgba(255, 255, 255, 0.14);
   --glass-border-soft: rgba(255, 255, 255, 0.09);
@@ -79,7 +71,7 @@
 }
 
 /* ================================================================
-   2. COLORFUL BACKGROUND — gives the glass something to blur
+   2. COLORFUL BACKGROUND
    ================================================================ */
 
 body {
@@ -101,17 +93,13 @@ body {
 }
 
 /* ================================================================
-   3. GLASS MIXIN (repeated because CSS has no mixin)
+   3. GLASS SURFACES
    ================================================================ */
 
-.glass,
 .input-wrapper,
-.settings-list,
 .media-card,
-.history-item,
-.custom-select,
-.dropdown-menu,
 .chip,
+.custom-select,
 .settings-menu-item,
 .pdf-btn {
   -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -122,7 +110,224 @@ body {
 }
 
 /* ================================================================
-   4. HEADER
+   4. SETTINGS LIST — FIX THE DROPDOWN CLIPPING BUG
+   No overflow:hidden here. Rounded corners applied to first/last
+   items instead, so dropdowns can escape and paint above siblings.
+   ================================================================ */
+
+.settings-list {
+  background: var(--glass-bg) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  overflow: visible !important;
+  position: relative;
+  z-index: 1;
+}
+
+.settings-list > .settings-item:first-child {
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+}
+
+.settings-list > .settings-item:last-child {
+  border-bottom-left-radius: var(--radius-xl);
+  border-bottom-right-radius: var(--radius-xl);
+}
+
+/* Promote a row that has an open dropdown ABOVE all siblings */
+.settings-item {
+  position: relative;
+  z-index: 1;
+  border-bottom: 0.5px solid var(--glass-border-soft) !important;
+  background: transparent !important;
+  transition: background var(--dur-fast) var(--ease);
+}
+
+.settings-item:has(.dropdown-menu:not(.hidden)) {
+  z-index: 5000 !important;
+}
+
+.settings-item:active {
+  background: rgba(var(--primary-rgb), 0.10) !important;
+}
+
+/* ================================================================
+   5. iOS 26 DROPDOWN MENU — floating frosted sheet
+   ================================================================ */
+
+.custom-select {
+  border-radius: var(--radius-l) !important;
+  color: var(--text-main);
+  transition: border-color var(--dur-fast) var(--ease),
+              background var(--dur-fast) var(--ease);
+  background: var(--glass-bg-strong) !important;
+}
+
+.custom-select:active {
+  border-color: rgba(var(--primary-rgb), 0.55) !important;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  left: auto;
+  min-width: 200px;
+  max-height: 320px;
+  overflow-y: auto;
+  border-radius: 18px !important;
+
+  background: var(--glass-bg-strong) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  backdrop-filter: blur(40px) saturate(200%);
+
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 -1px 0 rgba(255, 255, 255, 0.15) inset,
+    0 20px 60px rgba(31, 38, 135, 0.24),
+    0 8px 20px rgba(31, 38, 135, 0.12) !important;
+
+  padding: 6px !important;
+  z-index: 10000 !important;
+
+  animation: iosMenuIn 0.22s var(--ease);
+  transform-origin: top right;
+}
+
+.dropdown-menu.open-up {
+  top: auto;
+  bottom: calc(100% + 8px);
+  transform-origin: bottom right;
+  animation: iosMenuInUp 0.22s var(--ease);
+}
+
+@keyframes iosMenuIn {
+  from { opacity: 0; transform: scale(0.94) translateY(-6px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+@keyframes iosMenuInUp {
+  from { opacity: 0; transform: scale(0.94) translateY(6px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+.dropdown-menu .dropdown-item,
+.dropdown-item {
+  padding: 12px 16px !important;
+  border-radius: 12px !important;
+  color: var(--text-main) !important;
+  font-weight: 500;
+  font-size: 0.92rem;
+  transition: background var(--dur-fast) var(--ease),
+              color var(--dur-fast) var(--ease);
+  position: relative;
+  cursor: pointer;
+}
+
+.dropdown-item:active {
+  background: rgba(var(--primary-rgb), 0.16) !important;
+}
+
+.dropdown-item.selected,
+.dropdown-item[aria-selected="true"] {
+  color: var(--primary) !important;
+  background: var(--primary-soft) !important;
+  font-weight: 600;
+}
+
+.dropdown-item.selected::after,
+.dropdown-item[aria-selected="true"]::after {
+  content: "✓";
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dropdown-item:hover {
+    background: rgba(var(--primary-rgb), 0.10) !important;
+  }
+}
+
+/* Make sure the sub-page header and any outer wrapper don't clip */
+.settings-sub-page,
+.settings-page,
+#settingsPage {
+  overflow: visible !important;
+}
+
+/* ================================================================
+   6. ANALYZE BUTTON — iOS 26 Liquid Glass prominent button
+   ================================================================ */
+
+#downloadBtn {
+  position: relative;
+  background: linear-gradient(135deg,
+              rgba(var(--primary-rgb), 0.92) 0%,
+              rgba(175, 82, 222, 0.92) 100%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  border-radius: var(--radius-l) !important;
+  color: var(--on-primary) !important;
+  letter-spacing: 0.4px;
+  font-weight: 700;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.18) inset,
+    0 10px 30px rgba(var(--primary-rgb), 0.38),
+    0 4px 10px rgba(var(--primary-rgb), 0.22) !important;
+  transition: filter var(--dur-fast) var(--ease),
+              box-shadow var(--dur-fast) var(--ease) !important;
+  transform: none !important;
+}
+
+/* Specular sheen — soft light sweep across the top */
+#downloadBtn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg,
+              rgba(255, 255, 255, 0.28) 0%,
+              rgba(255, 255, 255, 0.06) 40%,
+              rgba(255, 255, 255, 0) 60%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+#downloadBtn:active {
+  filter: brightness(0.92);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 4px 12px rgba(var(--primary-rgb), 0.22),
+    0 0 0 rgba(var(--primary-rgb), 0) !important;
+  transition-duration: 0.08s !important;
+  transform: none !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #downloadBtn:hover {
+    filter: brightness(1.05);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.6) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.18) inset,
+      0 14px 40px rgba(var(--primary-rgb), 0.5),
+      0 4px 12px rgba(var(--primary-rgb), 0.3) !important;
+  }
+}
+
+/* ================================================================
+   7. HEADER
    ================================================================ */
 
 header h1 {
@@ -138,7 +343,7 @@ header p {
 }
 
 /* ================================================================
-   5. INPUT
+   8. INPUT
    ================================================================ */
 
 .input-wrapper {
@@ -166,12 +371,6 @@ input[type="text"]::placeholder {
     0 8px 32px rgba(31, 38, 135, 0.08) !important;
 }
 
-textarea.batch-url-textarea {
-  background: transparent !important;
-  border: none !important;
-  color: var(--text-main);
-}
-
 .input-action-btn {
   color: var(--text-secondary) !important;
   border-radius: var(--radius-sm) !important;
@@ -185,52 +384,7 @@ textarea.batch-url-textarea {
 }
 
 /* ================================================================
-   6. ANALYZE BUTTON — iOS liquid glass press
-   NO transform, NO hover lift. Only opacity + inset shadow on press.
-   This eliminates the touch-flicker bug.
-   ================================================================ */
-
-#downloadBtn {
-  background: linear-gradient(135deg, var(--primary) 0%, #af52de 100%) !important;
-  border: 0.5px solid rgba(255, 255, 255, 0.35) !important;
-  border-radius: var(--radius-l) !important;
-  color: var(--on-primary) !important;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.35) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.12) inset,
-    0 6px 20px rgba(var(--primary-rgb), 0.32),
-    0 2px 6px rgba(var(--primary-rgb), 0.18) !important;
-  transition: filter var(--dur-fast) var(--ease),
-              box-shadow var(--dur-fast) var(--ease),
-              transform var(--dur-fast) var(--ease) !important;
-  transform: none !important;
-}
-
-/* Press state — no transform, just inset shadow + reduced glow */
-#downloadBtn:active {
-  filter: brightness(0.92);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.25) inset,
-    0 2px 6px rgba(var(--primary-rgb), 0.20),
-    0 0 0 rgba(var(--primary-rgb), 0) !important;
-  transform: none !important;
-  transition-duration: 0.08s !important;
-}
-
-/* Desktop only — subtle hover that can't stick on mobile */
-@media (hover: hover) and (pointer: fine) {
-  #downloadBtn:hover {
-    filter: brightness(1.04);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.45) inset,
-      0 -1px 0 rgba(0, 0, 0, 0.12) inset,
-      0 8px 28px rgba(var(--primary-rgb), 0.40),
-      0 2px 8px rgba(var(--primary-rgb), 0.24) !important;
-  }
-}
-
-/* ================================================================
-   7. CHIPS
+   9. CHIPS
    ================================================================ */
 
 .chip {
@@ -245,31 +399,9 @@ textarea.batch-url-textarea {
   color: var(--primary) !important;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .chip:hover {
-    border-color: rgba(var(--primary-rgb), 0.45) !important;
-    color: var(--primary);
-  }
-}
-
 /* ================================================================
-   8. CARDS / LISTS / PANELS
+   10. MEDIA CARD
    ================================================================ */
-
-.settings-list {
-  border-radius: var(--radius-xl) !important;
-  overflow: hidden;
-}
-
-.settings-item {
-  border-bottom: 0.5px solid var(--glass-border-soft) !important;
-  background: transparent !important;
-  transition: background var(--dur-fast) var(--ease);
-}
-
-.settings-item:active {
-  background: rgba(var(--primary-rgb), 0.10) !important;
-}
 
 .media-card {
   border-radius: var(--radius-xl) !important;
@@ -277,7 +409,7 @@ textarea.batch-url-textarea {
 }
 
 /* ================================================================
-   9. HISTORY
+   11. HISTORY
    ================================================================ */
 
 .history-item {
@@ -287,6 +419,8 @@ textarea.batch-url-textarea {
   background: var(--glass-bg-soft) !important;
   box-shadow: var(--glass-shadow);
   transition: background var(--dur-fast) var(--ease);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
 }
 
 .history-item:active {
@@ -301,17 +435,11 @@ textarea.batch-url-textarea {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
-.history-info h3 {
-  color: var(--text-main);
-}
-
-.history-info p {
-  color: var(--text-secondary);
-}
+.history-info h3 { color: var(--text-main); }
+.history-info p  { color: var(--text-secondary); }
 
 /* ================================================================
-   10. BUTTONS — edit / done / clear / delete
-   All use the same no-flicker press pattern.
+   12. ACTION BUTTONS
    ================================================================ */
 
 .edit-btn,
@@ -336,9 +464,7 @@ textarea.batch-url-textarea {
     0 4px 14px rgba(31, 38, 135, 0.06);
 }
 
-.edit-btn:active {
-  filter: brightness(0.95);
-}
+.edit-btn:active { filter: brightness(0.95); }
 
 .clear-all-btn {
   background: var(--glass-bg-strong) !important;
@@ -364,9 +490,7 @@ textarea.batch-url-textarea {
     0 4px 14px rgba(var(--primary-rgb), 0.28);
 }
 
-.done-btn:active {
-  filter: brightness(0.92);
-}
+.done-btn:active { filter: brightness(0.92); }
 
 .delete-item-btn {
   background: linear-gradient(135deg, #ff453a, #ff3b30) !important;
@@ -378,75 +502,17 @@ textarea.batch-url-textarea {
   transition: filter var(--dur-fast) var(--ease) !important;
 }
 
-.delete-item-btn:active {
-  filter: brightness(0.88);
-}
+.delete-item-btn:active { filter: brightness(0.88); }
 
-/* Desktop hover — only fires where it can't stick */
 @media (hover: hover) and (pointer: fine) {
-  .edit-btn:hover {
-    border-color: rgba(var(--primary-rgb), 0.4) !important;
-    color: var(--primary) !important;
-  }
-
-  .clear-all-btn:hover {
-    border-color: rgba(255, 59, 48, 0.4) !important;
-    color: var(--danger) !important;
-  }
-
-  .done-btn:hover {
-    filter: brightness(1.05);
-  }
-
-  .delete-item-btn:hover {
-    filter: brightness(1.08);
-  }
+  .edit-btn:hover      { border-color: rgba(var(--primary-rgb), 0.4) !important; color: var(--primary) !important; }
+  .clear-all-btn:hover { border-color: rgba(255, 59, 48, 0.4) !important; color: var(--danger) !important; }
+  .done-btn:hover      { filter: brightness(1.05); }
+  .delete-item-btn:hover { filter: brightness(1.08); }
 }
 
 /* ================================================================
-   11. DROPDOWN / SELECT
-   ================================================================ */
-
-.custom-select {
-  border-radius: var(--radius-l) !important;
-  color: var(--text-main);
-  transition: border-color var(--dur-fast) var(--ease);
-}
-
-.custom-select:active {
-  border-color: rgba(var(--primary-rgb), 0.55) !important;
-}
-
-.dropdown-menu {
-  border-radius: var(--radius-l) !important;
-  background: var(--glass-bg-strong) !important;
-  border: 0.5px solid var(--glass-border) !important;
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  backdrop-filter: blur(30px) saturate(180%);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.7) inset,
-    0 12px 40px rgba(31, 38, 135, 0.18),
-    0 4px 12px rgba(31, 38, 135, 0.08) !important;
-  overflow: hidden;
-}
-
-.dropdown-item {
-  color: var(--text-main) !important;
-  transition: background var(--dur-fast) var(--ease);
-}
-
-.dropdown-item:active {
-  background: rgba(var(--primary-rgb), 0.12) !important;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .dropdown-item:hover {
-    background: rgba(var(--primary-rgb), 0.08) !important;
-  }
-}
-
-/* ================================================================
-   12. DOWNLOAD LIST (dl-item)
+   13. DOWNLOAD LIST
    ================================================================ */
 
 .dl-item {
@@ -456,9 +522,7 @@ textarea.batch-url-textarea {
   transition: background var(--dur-fast) var(--ease);
 }
 
-.dl-item:active {
-  background: rgba(var(--primary-rgb), 0.10) !important;
-}
+.dl-item:active { background: rgba(var(--primary-rgb), 0.10) !important; }
 
 .dl-item .dl-badge {
   background: linear-gradient(135deg, var(--primary), #af52de) !important;
@@ -470,18 +534,14 @@ textarea.batch-url-textarea {
     0 2px 8px rgba(var(--primary-rgb), 0.3);
 }
 
-.dl-item .track-title {
-  color: var(--text-main);
-}
+.dl-item .track-title { color: var(--text-main); }
 
 @media (hover: hover) and (pointer: fine) {
-  .dl-item:hover {
-    background: rgba(255, 255, 255, 0.35) !important;
-  }
+  .dl-item:hover { background: rgba(255, 255, 255, 0.35) !important; }
 }
 
 /* ================================================================
-   13. PDF BUTTON
+   14. PDF BUTTON
    ================================================================ */
 
 .pdf-btn {
@@ -491,12 +551,10 @@ textarea.batch-url-textarea {
               border-color var(--dur-fast) var(--ease) !important;
 }
 
-.pdf-btn:active {
-  border-color: rgba(var(--primary-rgb), 0.5) !important;
-}
+.pdf-btn:active { border-color: rgba(var(--primary-rgb), 0.5) !important; }
 
 /* ================================================================
-   14. MODAL OVERLAY + GLASS CARD
+   15. MODALS
    ================================================================ */
 
 .modal-overlay {
@@ -517,9 +575,7 @@ textarea.batch-url-textarea {
   transition: filter var(--dur-fast) var(--ease) !important;
 }
 
-.close-card:active {
-  filter: brightness(0.9);
-}
+.close-card:active { filter: brightness(0.9); }
 
 [data-theme="dark"] .close-card {
   background: rgba(40, 40, 48, 0.65) !important;
@@ -527,7 +583,7 @@ textarea.batch-url-textarea {
 }
 
 /* ================================================================
-   15. SLIDER BUTTONS
+   16. SLIDER
    ================================================================ */
 
 .slide-btn {
@@ -543,19 +599,11 @@ textarea.batch-url-textarea {
   transform: none !important;
 }
 
-.slide-btn:active {
-  filter: brightness(0.88);
-}
+.slide-btn:active { filter: brightness(0.88); }
 
 [data-theme="dark"] .slide-btn {
   background: rgba(40, 40, 48, 0.55) !important;
   color: #fff !important;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .slide-btn:hover {
-    background: rgba(255, 255, 255, 0.65) !important;
-  }
 }
 
 .slide-indicator {
@@ -573,7 +621,7 @@ textarea.batch-url-textarea {
 }
 
 /* ================================================================
-   16. PROGRESS BAR
+   17. PROGRESS
    ================================================================ */
 
 .progress-container {
@@ -588,13 +636,15 @@ textarea.batch-url-textarea {
 }
 
 /* ================================================================
-   17. SETTINGS MENU ITEMS (main page)
+   18. SETTINGS MENU ITEMS
    ================================================================ */
 
 .settings-menu-item {
   border-bottom: 0.5px solid var(--glass-border-soft) !important;
   background: transparent !important;
   transition: background var(--dur-fast) var(--ease);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
 }
 
 .settings-menu-item:active {
@@ -616,7 +666,7 @@ textarea.batch-url-textarea {
 .menu-desc  { color: var(--text-secondary); }
 
 /* ================================================================
-   18. SUB-PAGE HEADER
+   19. SUB-PAGE HEADER
    ================================================================ */
 
 .back-btn-settings {
@@ -631,17 +681,12 @@ textarea.batch-url-textarea {
   transition: filter var(--dur-fast) var(--ease) !important;
 }
 
-.back-btn-settings:active {
-  filter: brightness(0.92);
-}
+.back-btn-settings:active { filter: brightness(0.92); }
 
-.sub-page-header h3 {
-  color: var(--text-main);
-}
+.sub-page-header h3 { color: var(--text-main); }
 
 /* ================================================================
-   19. NAV — iOS floating glass bar
-   CRITICAL: does NOT change position. Only glass appearance.
+   20. NAV
    ================================================================ */
 
 .nav-item {
@@ -649,9 +694,7 @@ textarea.batch-url-textarea {
   transition: color var(--dur-fast) var(--ease);
 }
 
-.nav-item.active {
-  color: var(--primary) !important;
-}
+.nav-item.active { color: var(--primary) !important; }
 
 .nav-item.active::after {
   background: linear-gradient(90deg, var(--primary), #af52de) !important;
@@ -660,7 +703,7 @@ textarea.batch-url-textarea {
 }
 
 /* ================================================================
-   20. PAGE TRANSITIONS
+   21. PAGE TRANSITIONS
    ================================================================ */
 
 .page-content:not(.hidden) {
@@ -673,7 +716,7 @@ textarea.batch-url-textarea {
 }
 
 /* ================================================================
-   21. SKELETON LOADER
+   22. SKELETON
    ================================================================ */
 
 .skeleton-card {
@@ -694,8 +737,4 @@ textarea.batch-url-textarea {
   ) !important;
   background-size: 200% 100% !important;
   animation: skeleton-loading 1.5s infinite linear !important;
-}
-
-#loaderText {
-  color: var(--text-secondary);
 }
