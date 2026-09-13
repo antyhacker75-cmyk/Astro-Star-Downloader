@@ -89,9 +89,7 @@ public class MainActivity extends BridgeActivity {
                 Intent i = new Intent(MainActivity.this, MediaPlaybackService.class);
                 i.setAction(MediaPlaybackService.ACTION_PLAY);
                 startService(i);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
 
         @JavascriptInterface
@@ -100,9 +98,7 @@ public class MainActivity extends BridgeActivity {
                 Intent i = new Intent(MainActivity.this, MediaPlaybackService.class);
                 i.setAction(MediaPlaybackService.ACTION_PAUSE);
                 startService(i);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
 
         @JavascriptInterface
@@ -111,9 +107,7 @@ public class MainActivity extends BridgeActivity {
                 Intent i = new Intent(MainActivity.this, MediaPlaybackService.class);
                 i.setAction(MediaPlaybackService.ACTION_STOP);
                 startService(i);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
 
         @JavascriptInterface
@@ -123,9 +117,7 @@ public class MainActivity extends BridgeActivity {
                 i.setAction(MediaPlaybackService.ACTION_PLAY);
                 i.putExtra("seek", positionMs);
                 startService(i);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
 
         @JavascriptInterface
@@ -143,8 +135,7 @@ public class MainActivity extends BridgeActivity {
             try {
                 SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
                 prefs.edit().remove("astrostar_pending_share_history_list").commit();
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {}
         }
 
         @JavascriptInterface
@@ -153,15 +144,13 @@ public class MainActivity extends BridgeActivity {
                 if (key == null || value == null) return;
                 SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
                 prefs.edit().putString(key, value).commit();
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {}
         }
 
         // ========================================================
-        // DOWNLOAD FOREGROUND SERVICE  (with progress bar + %)
+        // DOWNLOAD FOREGROUND SERVICE
         // ========================================================
 
-        /** Start the foreground service with an indeterminate bar. */
         @JavascriptInterface
         public void startDownloadService(String title) {
             try {
@@ -174,28 +163,19 @@ public class MainActivity extends BridgeActivity {
                 } else {
                     startService(intent);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
 
         /**
-         * NEW — Called from JS on every progress tick.
-         * This is what actually updates the progress bar and percentage
-         * in the notification.
-         *
-         * @param downloaded bytes downloaded so far
-         * @param total      total bytes (0 if unknown)
-         * @param speed      optional speed string like "1.2 MB/s" (may be null)
+         * Called from JS on every progress tick.
+         * This is what updates the progress bar and % in the notification.
          */
         @JavascriptInterface
         public void updateDownloadProgress(long downloaded, long total, String speed) {
             try {
                 DownloadForegroundService.pushProgress(
                         MainActivity.this, downloaded, total, speed);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
 
         @JavascriptInterface
@@ -204,9 +184,7 @@ public class MainActivity extends BridgeActivity {
                 Intent i = new Intent(MainActivity.this, DownloadForegroundService.class);
                 i.setAction(DownloadForegroundService.ACTION_STOP);
                 startService(i);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
 
         @JavascriptInterface
@@ -222,16 +200,15 @@ public class MainActivity extends BridgeActivity {
                     );
                     nm.createNotificationChannel(ch);
                 }
-                androidx.core.app.NotificationCompat.Builder b = new androidx.core.app.NotificationCompat.Builder(MainActivity.this, "astrostar_download_complete")
+                androidx.core.app.NotificationCompat.Builder b =
+                        new androidx.core.app.NotificationCompat.Builder(MainActivity.this, "astrostar_download_complete")
                         .setSmallIcon(android.R.drawable.stat_sys_download_done)
                         .setContentTitle("Download Complete")
                         .setContentText((title != null ? title : "Media") + (path != null ? " · " + path : ""))
                         .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
                         .setAutoCancel(true);
                 nm.notify((int) System.currentTimeMillis(), b.build());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
 
         @JavascriptInterface
@@ -247,16 +224,15 @@ public class MainActivity extends BridgeActivity {
                     );
                     nm.createNotificationChannel(ch);
                 }
-                androidx.core.app.NotificationCompat.Builder b = new androidx.core.app.NotificationCompat.Builder(MainActivity.this, "astrostar_download_complete")
+                androidx.core.app.NotificationCompat.Builder b =
+                        new androidx.core.app.NotificationCompat.Builder(MainActivity.this, "astrostar_download_complete")
                         .setSmallIcon(android.R.drawable.stat_notify_error)
                         .setContentTitle("Download Failed")
                         .setContentText((title != null ? title : "Media") + ": " + (error != null ? error : "Failed"))
                         .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
                         .setAutoCancel(true);
                 nm.notify((int) System.currentTimeMillis(), b.build());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
     }
 
@@ -621,8 +597,7 @@ public class MainActivity extends BridgeActivity {
                     try {
                         String handle = finalOwnerTg.startsWith("@") ? finalOwnerTg.substring(1) : finalOwnerTg;
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/" + handle)));
-                    } catch (Exception e) {
-                    }
+                    } catch (Exception e) {}
                 }
             });
             root.addView(tgBtn);
