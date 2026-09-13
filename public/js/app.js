@@ -8,7 +8,6 @@ import {
   cleanupOrphanedTempFiles,
   App,
 } from "./utils/index.js";
-
 import { setUIState, renderHistory, updateSliderUI } from "./ui.js";
 import { initAuthListeners, verifyLock } from "./modules/authManager.js";
 import {
@@ -16,6 +15,7 @@ import {
   autoClearOldCache,
   onHistoryItemClick,
   onHistoryDeleteClick,
+  loadPersistentHistory,
 } from "./modules/history.js";
 import { handlePasteFromClipboard } from "./modules/intents.js";
 import {
@@ -128,9 +128,8 @@ document.addEventListener("click", (e) => {
   document
     .querySelectorAll(".dropdown-menu")
     .forEach((m) => m.classList.add("hidden"));
-
   const interactive = e.target.closest(
-    "button, .nav-item, .settings-item, .toggle-switch, .dropdown-item, .paste-btn, .clear-btn, .chip",
+    "button, .nav-item, .settings-item, .toggle-switch, .dropdown-item, .paste-btn, .clear-btn, .chip"
   );
   if (interactive) {
     triggerHaptic("medium");
@@ -161,7 +160,16 @@ autoClearOldCache();
 cleanupOrphanedTempFiles();
 initAuthListeners(currentLang);
 setUIState({ currentLang, isEditingHistory });
-renderHistory(onHistoryItemClick, onHistoryDeleteClick);
+
+// Load persistent history from public storage, then render.
+loadPersistentHistory()
+  .then(() => {
+    renderHistory(onHistoryItemClick, onHistoryDeleteClick);
+  })
+  .catch((e) => {
+    console.warn("[AstroStar] Persistent history load failed:", e);
+    renderHistory(onHistoryItemClick, onHistoryDeleteClick);
+  });
 
 function refreshHistoryIfVisible() {
   const historyPage = document.getElementById("historyPage");
@@ -169,6 +177,7 @@ function refreshHistoryIfVisible() {
     renderHistory(onHistoryItemClick, onHistoryDeleteClick);
   }
 }
+
 window.addEventListener("astrostar_download_started", refreshHistoryIfVisible);
 window.addEventListener("astrostar_download_ended", refreshHistoryIfVisible);
 window.addEventListener("astrostar_download_cancelled", refreshHistoryIfVisible);
@@ -207,7 +216,7 @@ async function switchPage(pageId) {
 
   const currentNavItems = document.querySelectorAll(".nav-item");
   const item = Array.from(currentNavItems).find(
-    (i) => i.getAttribute("data-page") === pageId,
+    (i) => i.getAttribute("data-page") === pageId
   );
   if (!item) return;
 
@@ -218,6 +227,7 @@ async function switchPage(pageId) {
   document
     .querySelectorAll(".page-content")
     .forEach((page) => page.classList.add("hidden"));
+
   pauseAllMedia(document);
 
   const targetPage = document.getElementById(targetPageId);
@@ -253,14 +263,13 @@ document.addEventListener("click", (e) => {
 
 let touchStartX = 0;
 let touchStartY = 0;
-
 document.addEventListener(
   "touchstart",
   (e) => {
     touchStartX = e.changedTouches[0].screenX;
     touchStartY = e.changedTouches[0].screenY;
   },
-  { passive: true },
+  { passive: true }
 );
 
 document.addEventListener(
@@ -268,12 +277,10 @@ document.addEventListener(
   (e) => {
     const touchEndX = e.changedTouches[0].screenX;
     const touchEndY = e.changedTouches[0].screenY;
-
     const diffX = touchStartX - touchEndX;
     const diffY = touchStartY - touchEndY;
 
     if (Math.abs(diffY) > Math.abs(diffX)) return;
-
     if (Math.abs(diffX) < 100) return;
 
     const target = e.target;
@@ -303,12 +310,13 @@ document.addEventListener(
       switchPage(pages[currentIndex - 1]);
     }
   },
-  { passive: true },
+  { passive: true }
 );
 
 // Initial Auto-Download Check
 setTimeout(() => {
-  const autoDownload = localStorage.getItem("astrostar_auto_download") === "true";
+  const autoDownload =
+    localStorage.getItem("astrostar_auto_download") === "true";
   if (autoDownload) {
     if (typeof handlePasteFromClipboard === "function") {
       handlePasteFromClipboard(true);
@@ -331,7 +339,7 @@ if (
     }
 
     const activeSubPage = document.querySelector(
-      ".settings-sub-page:not(.hidden)",
+      ".settings-sub-page:not(.hidden)"
     );
     if (activeSubPage) {
       if (activeSubPage.id === "settingsLiveBg") {
@@ -350,6 +358,7 @@ if (
     const currentPage = activeNavItem
       ? activeNavItem.getAttribute("data-page")
       : "home";
+
     if (currentPage !== "home") {
       switchPage("home");
       return;
