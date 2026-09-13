@@ -1,0 +1,275 @@
+/* modern.css — visual polish only. Loads AFTER style.css.
+   Does not touch layout, positioning, or sizing. */
+
+:root {
+  /* Colors — cool indigo palette */
+  --bg-color: #f6f7fb;
+  --surface: #ffffff;
+  --surface-hover: #f1f3f9;
+  --primary: #4f46e5;
+  --primary-rgb: 79, 70, 229;
+  --primary-hover: #4338ca;
+  --on-primary: #ffffff;
+  --text-main: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --danger: #ef4444;
+  --success: #10b981;
+
+  /* Softer corners */
+  --radius-sm: 8px;
+  --radius-l: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+
+  /* Soft elevation */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 8px 28px rgba(15, 23, 42, 0.10);
+  --shadow-glow: 0 8px 24px rgba(79, 70, 229, 0.25);
+}
+
+[data-theme="dark"] {
+  --bg-color: #0f1117;
+  --surface: #1a1d27;
+  --surface-hover: #232736;
+  --primary: #818cf8;
+  --primary-rgb: 129, 140, 248;
+  --primary-hover: #a5b4fc;
+  --on-primary: #0f1117;
+  --text-main: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border: #2d3340;
+  --border-strong: #3b4252;
+}
+
+/* Inputs — soft rounded, focus ring */
+input[type="text"] {
+  border-radius: var(--radius-l) !important;
+  border-color: var(--border) !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input[type="text"]:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.12) !important;
+}
+
+/* Analyze button — gradient, glow */
+#downloadBtn {
+  background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%) !important;
+  border: none !important;
+  border-radius: var(--radius-l) !important;
+  color: var(--on-primary) !important;
+  box-shadow: var(--shadow-glow) !important;
+  transition: transform 0.15s, box-shadow 0.15s !important;
+}
+
+#downloadBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 32px rgba(var(--primary-rgb), 0.35) !important;
+}
+
+#downloadBtn:active {
+  transform: translateY(0);
+}
+
+/* Header — gradient text */
+header h1 {
+  background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Platform chips — soft shadow, hover lift */
+.chip {
+  border-radius: var(--radius-pill) !important;
+  border-color: var(--border) !important;
+  background: var(--surface) !important;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.chip:hover {
+  border-color: var(--primary) !important;
+  color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Settings cards */
+.settings-list {
+  border-radius: var(--radius-xl) !important;
+  border-color: var(--border) !important;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.settings-item {
+  border-bottom-color: var(--border) !important;
+}
+
+.settings-item:hover {
+  background-color: var(--surface-hover) !important;
+}
+
+/* Media card */
+.media-card {
+  border-radius: var(--radius-xl) !important;
+  border-color: var(--border) !important;
+  box-shadow: var(--shadow-md);
+}
+
+/* History thumbnails */
+.history-thumb-container {
+  border-radius: var(--radius-l) !important;
+  border-color: var(--border) !important;
+}
+
+/* History items */
+.history-item {
+  border-bottom-color: var(--border) !important;
+}
+
+.history-item:hover {
+  background-color: var(--surface-hover) !important;
+}
+
+/* Delete button — red with glow */
+.delete-item-btn {
+  background: var(--danger) !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  border-radius: 50% !important;
+}
+
+/* Edit / Done / Clear buttons */
+.edit-btn {
+  border-radius: var(--radius-l) !important;
+  border-color: var(--border) !important;
+  transition: all 0.15s;
+}
+
+.edit-btn:hover {
+  border-color: var(--primary) !important;
+  color: var(--primary);
+}
+
+.done-btn {
+  background: linear-gradient(135deg, var(--primary), #8b5cf6) !important;
+  border-radius: var(--radius-l) !important;
+  border: none !important;
+  color: var(--on-primary) !important;
+}
+
+.clear-all-btn {
+  border-radius: var(--radius-l) !important;
+  border-color: var(--border) !important;
+}
+
+.clear-all-btn:hover {
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+}
+
+/* Dropdowns — frosted glass */
+.dropdown-menu {
+  border-radius: var(--radius-l) !important;
+  border-color: var(--border) !important;
+  box-shadow: var(--shadow-lg) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.dropdown-item:hover {
+  background: rgba(var(--primary-rgb), 0.08) !important;
+}
+
+.custom-select {
+  border-radius: var(--radius-l) !important;
+  border-color: var(--border) !important;
+}
+
+.custom-select:hover {
+  border-color: var(--primary) !important;
+}
+
+/* Download list items */
+.dl-item {
+  border-bottom-color: var(--border) !important;
+}
+
+.dl-item:hover {
+  background-color: var(--surface-hover) !important;
+}
+
+.dl-item .dl-badge {
+  background: linear-gradient(135deg, var(--primary), #8b5cf6) !important;
+  border-radius: var(--radius-pill) !important;
+  color: var(--on-primary) !important;
+}
+
+/* PDF button */
+.pdf-btn {
+  border-radius: var(--radius-l) !important;
+  border-color: var(--border) !important;
+}
+
+.pdf-btn:hover {
+  border-color: var(--primary) !important;
+  box-shadow: var(--shadow-glow);
+}
+
+/* Progress bar */
+.progress-bar {
+  background: linear-gradient(90deg, var(--primary), #8b5cf6) !important;
+  border-radius: var(--radius-pill) !important;
+}
+
+/* Nav active indicator — only add color, don't reposition */
+.nav-item.active {
+  color: var(--primary) !important;
+}
+
+/* Modals */
+.modal-overlay {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.close-card {
+  border-radius: 50% !important;
+  background: rgba(15, 23, 42, 0.55) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.close-card:hover {
+  background: var(--primary) !important;
+}
+
+/* Slider buttons */
+.slide-btn {
+  border-radius: 50% !important;
+  background: rgba(15, 23, 42, 0.5) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.slide-btn:hover {
+  background: rgba(15, 23, 42, 0.8) !important;
+}
+
+/* Page transitions */
+.page-content:not(.hidden) {
+  animation: astroFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes astroFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
