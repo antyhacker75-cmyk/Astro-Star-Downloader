@@ -8,6 +8,14 @@
   var MAX_TRIES = 20;
   var tries = 0;
 
+  // How far to pull the pill inward from the nav item's bounding box.
+  // Increase INSET_X for a narrower pill, INSET_Y for a shorter one.
+  var INSET_X = 6;
+  var INSET_Y = 6;
+
+  // Optional extra lift off the top/bottom of the nav bar.
+  var OFFSET_Y = 0;
+
   function findNavGroup() {
     var all = document.querySelectorAll(".nav-item");
     if (!all.length) return null;
@@ -43,13 +51,11 @@
     var nav = found.nav;
     var items = found.items;
 
-    // Ensure the nav is a positioning context for the absolute pill
     var navCS = window.getComputedStyle(nav);
     if (navCS.position === "static") {
       nav.style.position = "relative";
     }
 
-    // Create the pill
     var pill = document.createElement("div");
     pill.className = PILL_CLASS + " snap";
     nav.appendChild(pill);
@@ -72,16 +78,19 @@
         pill.classList.add("snap");
       }
 
-      var x = rect.left - navRect.left;
-      var y = rect.top - navRect.top;
+      // Compute the inset position and size
+      var w = Math.max(0, rect.width - INSET_X * 2);
+      var h = Math.max(0, rect.height - INSET_Y * 2);
 
-      pill.style.width = rect.width + "px";
-      pill.style.height = rect.height + "px";
+      var x = rect.left - navRect.left + INSET_X;
+      var y = rect.top - navRect.top + INSET_Y + OFFSET_Y;
+
+      pill.style.width = w + "px";
+      pill.style.height = h + "px";
       pill.style.transform = "translate(" + x + "px, " + y + "px)";
       pill.classList.add("ready");
     }
 
-    // Initial position with no animation, then enable transitions
     requestAnimationFrame(function () {
       movePill(false);
       requestAnimationFrame(function () {
@@ -91,7 +100,6 @@
       });
     });
 
-    // Watch for class changes on the nav items
     var observer = new MutationObserver(function (mutations) {
       var shouldMove = false;
       mutations.forEach(function (m) {
@@ -109,8 +117,6 @@
       });
     });
 
-    // Belt-and-braces: also reposition after clicks in case the
-    // active class is applied asynchronously
     items.forEach(function (item) {
       item.addEventListener("click", function () {
         [30, 120, 350].forEach(function (delay) {
@@ -121,7 +127,6 @@
       });
     });
 
-    // Reposition on resize / rotation without animation
     var resizeTimer = null;
     window.addEventListener("resize", function () {
       clearTimeout(resizeTimer);
@@ -130,12 +135,29 @@
       }, 100);
     });
 
-    // Reposition when the page becomes visible (e.g. returning from background)
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState === "visible") {
         movePill(false);
       }
     });
+
+    // Debug helper — call window.AstroStarNavPill.debug() in DevTools
+    window.AstroStarNavPill = {
+      debug: function () {
+        var active = nav.querySelector(".nav-item.active");
+        if (!active) return console.log("[nav-pill] no active item");
+        var nr = nav.getBoundingClientRect();
+        var r = active.getBoundingClientRect();
+        console.log("[nav-pill] nav rect:", nr);
+        console.log("[nav-pill] active item rect:", r);
+        console.log("[nav-pill] pill style:", {
+          width: pill.style.width,
+          height: pill.style.height,
+          transform: pill.style.transform
+        });
+      },
+      pill: pill
+    };
   }
 
   if (document.readyState === "loading") {
