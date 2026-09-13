@@ -1,6 +1,6 @@
 /* modern.css — iOS 26 Liquid Glass theme.
-   Visual polish only. Does not touch layout, positioning, or sizing.
-   Loads AFTER style.css. */
+   Loads AFTER style.css.
+   Visual polish only. Does not touch layout, positioning, or sizing. */
 
 /* ================================================================
    1. DESIGN TOKENS
@@ -110,9 +110,7 @@ body {
 }
 
 /* ================================================================
-   4. SETTINGS LIST — FIX THE DROPDOWN CLIPPING BUG
-   No overflow:hidden here. Rounded corners applied to first/last
-   items instead, so dropdowns can escape and paint above siblings.
+   4. SETTINGS LIST — prevents dropdown clipping
    ================================================================ */
 
 .settings-list {
@@ -137,7 +135,6 @@ body {
   border-bottom-right-radius: var(--radius-xl);
 }
 
-/* Promote a row that has an open dropdown ABOVE all siblings */
 .settings-item {
   position: relative;
   z-index: 1;
@@ -155,7 +152,7 @@ body {
 }
 
 /* ================================================================
-   5. iOS 26 DROPDOWN MENU — floating frosted sheet
+   5. iOS 26 DROPDOWN
    ================================================================ */
 
 .custom-select {
@@ -256,7 +253,6 @@ body {
   }
 }
 
-/* Make sure the sub-page header and any outer wrapper don't clip */
 .settings-sub-page,
 .settings-page,
 #settingsPage {
@@ -264,7 +260,7 @@ body {
 }
 
 /* ================================================================
-   6. ANALYZE BUTTON — iOS 26 Liquid Glass prominent button
+   6. ANALYZE BUTTON — iOS 26 Liquid Glass prominent
    ================================================================ */
 
 #downloadBtn {
@@ -291,7 +287,6 @@ body {
   transform: none !important;
 }
 
-/* Specular sheen — soft light sweep across the top */
 #downloadBtn::before {
   content: "";
   position: absolute;
@@ -554,32 +549,210 @@ input[type="text"]::placeholder {
 .pdf-btn:active { border-color: rgba(var(--primary-rgb), 0.5) !important; }
 
 /* ================================================================
-   15. MODALS
+   15. MODAL OVERLAY + GLASS DIALOG
    ================================================================ */
 
 .modal-overlay {
-  background: rgba(15, 15, 25, 0.42) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  backdrop-filter: blur(20px) saturate(160%);
+  background: rgba(0, 0, 0, 0.35) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
 }
 
-.close-card {
-  background: rgba(255, 255, 255, 0.55) !important;
-  color: var(--text-main) !important;
+.modal-content,
+.confirm-modal,
+.info-modal,
+.pin-modal,
+.guide-modal,
+.update-modal,
+#modalContent,
+#infoModal,
+#confirmModal {
+  background: var(--glass-bg-strong) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  backdrop-filter: blur(40px) saturate(200%);
   border: 0.5px solid var(--glass-border) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 28px !important;
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.7) inset,
-    0 4px 14px rgba(0, 0, 0, 0.15);
-  transition: filter var(--dur-fast) var(--ease) !important;
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 -1px 0 rgba(255, 255, 255, 0.15) inset,
+    0 24px 70px rgba(31, 38, 135, 0.32),
+    0 8px 24px rgba(31, 38, 135, 0.18) !important;
+  animation: dialogPopIn 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  transform-origin: center;
 }
 
-.close-card:active { filter: brightness(0.9); }
+@keyframes dialogPopIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
 
-[data-theme="dark"] .close-card {
-  background: rgba(40, 40, 48, 0.65) !important;
-  color: #fff !important;
+/* Dialog header */
+.modal-header,
+.info-header,
+.confirm-header {
+  padding: 20px 24px 16px 24px !important;
+  border-bottom: 0.5px solid var(--glass-border-soft) !important;
+  background: transparent !important;
+}
+
+.modal-header h2,
+.modal-header h3,
+.info-header h2,
+.info-header h3,
+.confirm-header h2,
+.confirm-header h3,
+.modal-title {
+  color: var(--text-main) !important;
+  font-size: 1.15rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  text-transform: uppercase !important;
+  margin: 0 !important;
+}
+
+/* Dialog body */
+.modal-body,
+.info-body,
+.confirm-body {
+  padding: 20px 24px !important;
+  color: var(--text-secondary) !important;
+  font-size: 0.94rem !important;
+  line-height: 1.5 !important;
+}
+
+.modal-body p,
+.info-body p,
+.confirm-body p,
+.modal-message {
+  color: var(--text-secondary) !important;
+  font-size: 0.94rem !important;
+  line-height: 1.55 !important;
+  margin: 0 0 12px 0 !important;
+}
+
+/* Close X button */
+.modal-close,
+.close-modal,
+.info-close,
+#closeInfoModal,
+#closeModal,
+#closeUpdateModal,
+.close-card-modal {
+  background: rgba(120, 120, 128, 0.18) !important;
+  border: none !important;
+  color: var(--text-secondary) !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.1rem !important;
+  transition: background 0.15s ease, color 0.15s ease !important;
+  cursor: pointer;
+}
+
+.modal-close:active,
+.close-modal:active,
+.info-close:active,
+#closeInfoModal:active,
+#closeModal:active {
+  background: rgba(120, 120, 128, 0.32) !important;
+  color: var(--text-main) !important;
+}
+
+/* Dialog footer / buttons */
+.modal-footer,
+.modal-actions,
+.confirm-actions,
+.info-actions {
+  padding: 16px 24px 20px 24px !important;
+  border-top: 0.5px solid var(--glass-border-soft) !important;
+  display: flex !important;
+  gap: 10px !important;
+}
+
+.modal-footer button,
+.modal-actions button,
+.confirm-actions button {
+  flex: 1;
+  padding: 14px 18px !important;
+  border-radius: 16px !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  transition: filter 0.15s ease !important;
+  cursor: pointer;
+}
+
+/* Secondary / cancel */
+.modal-footer button:first-child,
+.modal-actions button:first-child,
+.confirm-actions button:first-child,
+.cancel-btn {
+  background: var(--glass-bg) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  color: var(--text-main) !important;
+}
+
+.modal-footer button:first-child:active,
+.modal-actions button:first-child:active,
+.cancel-btn:active {
+  filter: brightness(0.92);
+}
+
+/* Primary / confirm */
+.modal-footer button:last-child,
+.modal-actions button:last-child,
+.confirm-actions button:last-child,
+.confirm-btn {
+  background: linear-gradient(135deg, var(--primary), #af52de) !important;
+  border: 0.5px solid rgba(255, 255, 255, 0.3) !important;
+  color: var(--on-primary) !important;
+  box-shadow: 0 4px 16px rgba(var(--primary-rgb), 0.35) !important;
+}
+
+.modal-footer button:last-child:active,
+.modal-actions button:last-child:active,
+.confirm-btn:active {
+  filter: brightness(0.9);
+}
+
+/* Checkbox row inside dialog */
+.dont-show-row,
+.info-dont-show {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  border-top: 0.5px solid var(--glass-border-soft);
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+/* Update dialog specifics */
+.update-version-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.update-version-row strong {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+/* Dark mode dialog tweak */
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .confirm-modal,
+[data-theme="dark"] .info-modal,
+[data-theme="dark"] .update-modal,
+[data-theme="dark"] #modalContent,
+[data-theme="dark"] #infoModal {
+  background: rgba(36, 36, 44, 0.88) !important;
 }
 
 /* ================================================================
