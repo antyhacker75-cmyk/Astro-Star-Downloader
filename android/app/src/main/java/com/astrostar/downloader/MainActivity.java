@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
@@ -11,6 +12,8 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -23,6 +26,9 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebViewClient;
@@ -39,8 +45,14 @@ import java.util.UUID;
 public class MainActivity extends BridgeActivity {
 
     private static final String TAG = "AstroStarLicense";
+    private static final int REQ_STORAGE = 1001;
+    private static final int REQ_NOTIFICATIONS = 101;
+
     private static MainActivity instance;
-    public static MainActivity getInstance() { return instance; }
+
+    public static MainActivity getInstance() {
+        return instance;
+    }
 
     // ⚠️ CHANGE THIS TO YOUR SERVER URL
     private static final String LICENSE_URL = "https://bitch.x10.mx/adminmusic.php";
@@ -50,6 +62,7 @@ public class MainActivity extends BridgeActivity {
     // ============================================================
     // JAVASCRIPT BRIDGE
     // ============================================================
+
     public class AstroStarMainBridge {
 
         @JavascriptInterface
@@ -66,7 +79,9 @@ public class MainActivity extends BridgeActivity {
                 } else {
                     startService(intent);
                 }
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         @JavascriptInterface
@@ -75,7 +90,9 @@ public class MainActivity extends BridgeActivity {
                 Intent i = new Intent(MainActivity.this, MediaPlaybackService.class);
                 i.setAction(MediaPlaybackService.ACTION_PLAY);
                 startService(i);
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         @JavascriptInterface
@@ -84,7 +101,9 @@ public class MainActivity extends BridgeActivity {
                 Intent i = new Intent(MainActivity.this, MediaPlaybackService.class);
                 i.setAction(MediaPlaybackService.ACTION_PAUSE);
                 startService(i);
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         @JavascriptInterface
@@ -93,7 +112,9 @@ public class MainActivity extends BridgeActivity {
                 Intent i = new Intent(MainActivity.this, MediaPlaybackService.class);
                 i.setAction(MediaPlaybackService.ACTION_STOP);
                 startService(i);
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         @JavascriptInterface
@@ -103,7 +124,9 @@ public class MainActivity extends BridgeActivity {
                 i.setAction(MediaPlaybackService.ACTION_PLAY);
                 i.putExtra("seek", positionMs);
                 startService(i);
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         @JavascriptInterface
@@ -111,7 +134,9 @@ public class MainActivity extends BridgeActivity {
             try {
                 SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
                 return prefs.getString("astrostar_pending_share_history_list", "[]");
-            } catch (Exception e) { return "[]"; }
+            } catch (Exception e) {
+                return "[]";
+            }
         }
 
         @JavascriptInterface
@@ -119,7 +144,8 @@ public class MainActivity extends BridgeActivity {
             try {
                 SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
                 prefs.edit().remove("astrostar_pending_share_history_list").commit();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         @JavascriptInterface
@@ -128,7 +154,8 @@ public class MainActivity extends BridgeActivity {
                 if (key == null || value == null) return;
                 SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
                 prefs.edit().putString(key, value).commit();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         @JavascriptInterface
@@ -141,7 +168,9 @@ public class MainActivity extends BridgeActivity {
                 } else {
                     startService(intent);
                 }
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         @JavascriptInterface
@@ -149,7 +178,9 @@ public class MainActivity extends BridgeActivity {
             try {
                 Intent i = new Intent(MainActivity.this, DownloadForegroundService.class);
                 stopService(i);
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         @JavascriptInterface
@@ -159,7 +190,10 @@ public class MainActivity extends BridgeActivity {
                 if (nm == null) return;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     android.app.NotificationChannel ch = new android.app.NotificationChannel(
-                            "astrostar_download_complete", "AstroStar Downloads", android.app.NotificationManager.IMPORTANCE_DEFAULT);
+                            "astrostar_download_complete",
+                            "AstroStar Downloads",
+                            android.app.NotificationManager.IMPORTANCE_DEFAULT
+                    );
                     nm.createNotificationChannel(ch);
                 }
                 androidx.core.app.NotificationCompat.Builder b = new androidx.core.app.NotificationCompat.Builder(MainActivity.this, "astrostar_download_complete")
@@ -169,7 +203,9 @@ public class MainActivity extends BridgeActivity {
                         .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
                         .setAutoCancel(true);
                 nm.notify((int) System.currentTimeMillis(), b.build());
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         @JavascriptInterface
@@ -179,7 +215,10 @@ public class MainActivity extends BridgeActivity {
                 if (nm == null) return;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     android.app.NotificationChannel ch = new android.app.NotificationChannel(
-                            "astrostar_download_complete", "AstroStar Downloads", android.app.NotificationManager.IMPORTANCE_DEFAULT);
+                            "astrostar_download_complete",
+                            "AstroStar Downloads",
+                            android.app.NotificationManager.IMPORTANCE_DEFAULT
+                    );
                     nm.createNotificationChannel(ch);
                 }
                 androidx.core.app.NotificationCompat.Builder b = new androidx.core.app.NotificationCompat.Builder(MainActivity.this, "astrostar_download_complete")
@@ -189,21 +228,27 @@ public class MainActivity extends BridgeActivity {
                         .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
                         .setAutoCancel(true);
                 nm.notify((int) System.currentTimeMillis(), b.build());
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
     // ============================================================
     // LIFECYCLE
     // ============================================================
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         instance = this;
 
         WebView webView = getBridge().getWebView();
+
         if (webView != null) {
             webView.addJavascriptInterface(new AstroStarMainBridge(), "AstroStarMainBridge");
+
             WebSettings settings = webView.getSettings();
             settings.setAllowFileAccess(true);
             settings.setAllowContentAccess(true);
@@ -212,6 +257,7 @@ public class MainActivity extends BridgeActivity {
             settings.setMediaPlaybackRequiresUserGesture(false);
 
             webView.setWebViewClient(new BridgeWebViewClient(getBridge()) {
+
                 @Override
                 public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                     String url = request.getUrl().toString();
@@ -245,6 +291,7 @@ public class MainActivity extends BridgeActivity {
 
         handleIntent(getIntent());
         requestNotificationPermission();
+        requestStoragePermissions();
         checkLicense();
     }
 
@@ -257,20 +304,83 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onResume() {
         super.onResume();
+
+        // Re-check storage permission on resume (user may have granted it from Settings)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                // Not yet granted — the app will still work for app-private storage,
+                // but public Documents/AstroStar/history.json will fail to write.
+            }
+        }
+
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     getBridge().getWebView().evaluateJavascript(
-                            "if (typeof window.checkAndMergePendingHistory === 'function') window.checkAndMergePendingHistory();", null);
+                            "if (typeof window.checkAndMergePendingHistory === 'function') window.checkAndMergePendingHistory();",
+                            null
+                    );
                 }
             }, 300);
         }
     }
 
     // ============================================================
+    // STORAGE PERMISSIONS
+    // ============================================================
+
+    private void requestStoragePermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11+ — need MANAGE_EXTERNAL_STORAGE for public Documents/ access
+            if (!Environment.isExternalStorageManager()) {
+                try {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(intent);
+                } catch (Exception e) {
+                    // Fallback: open the general "All files access" settings page
+                    try {
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                        startActivity(intent);
+                    } catch (Exception e2) {
+                        Log.w(TAG, "Could not open storage settings: " + e2.getMessage());
+                    }
+                }
+            }
+        } else {
+            // Android 10 and below — need WRITE_EXTERNAL_STORAGE
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{
+                                android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                        },
+                        REQ_STORAGE
+                );
+            }
+        }
+    }
+
+    // ============================================================
+    // NOTIFICATION PERMISSION
+    // ============================================================
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, REQ_NOTIFICATIONS);
+            }
+        }
+    }
+
+    // ============================================================
     // LICENSE CHECK
     // ============================================================
+
     private String getAstroStarDeviceId() {
         SharedPreferences prefs = getSharedPreferences("astrostar_device", MODE_PRIVATE);
         String id = prefs.getString("device_id", null);
@@ -337,6 +447,7 @@ public class MainActivity extends BridgeActivity {
     // ============================================================
     // LICENSE DIALOG
     // ============================================================
+
     private void showLicenseDialog(String status, String message, String ownerTg) {
         if (isFinishing() || licenseDialog != null) return;
 
@@ -359,7 +470,7 @@ public class MainActivity extends BridgeActivity {
         } else if ("pending".equals(status)) {
             titleText = "Approval Pending";
             accentColor = Color.parseColor("#a855f7");
-            iconChar = "🛡";
+            iconChar = "";
         } else {
             titleText = "Access Denied";
             accentColor = Color.parseColor("#ef4444");
@@ -374,6 +485,7 @@ public class MainActivity extends BridgeActivity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(24), dp(28), dp(24), dp(20));
+
         GradientDrawable bg = new GradientDrawable();
         bg.setColor(Color.parseColor("#0e0e11"));
         bg.setCornerRadius(dp(22));
@@ -402,32 +514,36 @@ public class MainActivity extends BridgeActivity {
         title.setTypeface(null, Typeface.BOLD);
         title.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
         titleLp.topMargin = dp(18);
         title.setLayoutParams(titleLp);
         root.addView(title);
 
         TextView msgView = new TextView(this);
-        msgView.setText(message != null && !message.isEmpty() ? message
-                : "This app is not authorized to run on this device.");
+        msgView.setText(message);
         msgView.setTextColor(Color.parseColor("#a1a1aa"));
         msgView.setTextSize(14);
         msgView.setGravity(Gravity.CENTER);
         msgView.setLineSpacing(dp(4), 1f);
         LinearLayout.LayoutParams msgLp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
         msgLp.topMargin = dp(10);
         msgView.setLayoutParams(msgLp);
         root.addView(msgView);
 
         TextView infoView = new TextView(this);
-        infoView.setText("Package: " + finalPackageName + "\nDevice: " +
-                finalDeviceId.substring(0, Math.min(16, finalDeviceId.length())) + "…");
+        infoView.setText("Package: " + finalPackageName + "\nDevice: " + finalDeviceId.substring(0, Math.min(16, finalDeviceId.length())) + "…");
         infoView.setTextColor(Color.parseColor("#52525b"));
         infoView.setTextSize(11);
         infoView.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams infoLp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
         infoLp.topMargin = dp(14);
         infoView.setLayoutParams(infoLp);
         root.addView(infoView);
@@ -444,14 +560,17 @@ public class MainActivity extends BridgeActivity {
             reqBg.setCornerRadius(dp(12));
             reqBtn.setBackground(reqBg);
             LinearLayout.LayoutParams reqLp = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, dp(48));
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    dp(48)
+            );
             reqLp.topMargin = dp(22);
             reqBtn.setLayoutParams(reqLp);
             reqBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     try {
-                        String url = LICENSE_URL + "?action=request_form"
+                        String url = LICENSE_URL
+                                + "?action=request_form"
                                 + "&package_name=" + URLEncoder.encode(finalPackageName, "UTF-8")
                                 + "&device_id=" + URLEncoder.encode(finalDeviceId, "UTF-8")
                                 + "&app_name=" + URLEncoder.encode(finalAppName, "UTF-8");
@@ -476,18 +595,19 @@ public class MainActivity extends BridgeActivity {
             tgBg.setStroke(dp(1), Color.parseColor("#2a2a30"));
             tgBtn.setBackground(tgBg);
             LinearLayout.LayoutParams tgLp = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, dp(46));
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    dp(46)
+            );
             tgLp.topMargin = dp(10);
             tgBtn.setLayoutParams(tgLp);
             tgBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     try {
-                        String handle = finalOwnerTg.startsWith("@")
-                                ? finalOwnerTg.substring(1) : finalOwnerTg;
-                        startActivity(new Intent(Intent.ACTION_VIEW,
-                                Uri.parse("https://t.me/" + handle)));
-                    } catch (Exception e) {}
+                        String handle = finalOwnerTg.startsWith("@") ? finalOwnerTg.substring(1) : finalOwnerTg;
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/" + handle)));
+                    } catch (Exception e) {
+                    }
                 }
             });
             root.addView(tgBtn);
@@ -502,7 +622,9 @@ public class MainActivity extends BridgeActivity {
         closeBg.setColor(Color.TRANSPARENT);
         closeBtn.setBackground(closeBg);
         LinearLayout.LayoutParams closeLp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, dp(42));
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(42)
+        );
         closeLp.topMargin = dp(6);
         closeBtn.setLayoutParams(closeLp);
         closeBtn.setOnClickListener(new View.OnClickListener() {
@@ -522,6 +644,7 @@ public class MainActivity extends BridgeActivity {
                 .setView(scroll)
                 .setCancelable(false)
                 .create();
+
         if (licenseDialog.getWindow() != null) {
             licenseDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
@@ -531,17 +654,9 @@ public class MainActivity extends BridgeActivity {
     // ============================================================
     // UTILITIES
     // ============================================================
+
     private int dp(int v) {
         return (int) (v * getResources().getDisplayMetrics().density);
-    }
-
-    private void requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= 33) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
-                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
-            }
-        }
     }
 
     private void handleIntent(Intent intent) {
@@ -556,13 +671,15 @@ public class MainActivity extends BridgeActivity {
                             .replace("'", "\\'")
                             .replace("\"", "\\\"")
                             .replace("\n", " ");
+
                     getBridge().getWebView().postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             getBridge().getWebView().evaluateJavascript(
-                                    "window.astroStarShareText = '" + escapedText + "';", null);
-                            getBridge().triggerWindowJSEvent("astroStarShareIntent",
-                                    "{ \"text\": \"" + escapedText + "\" }");
+                                    "window.astroStarShareText = '" + escapedText + "';",
+                                    null
+                            );
+                            getBridge().triggerWindowJSEvent("astroStarShareIntent", "{ \"text\": \"" + escapedText + "\" }");
                         }
                     }, 1000);
                 }
