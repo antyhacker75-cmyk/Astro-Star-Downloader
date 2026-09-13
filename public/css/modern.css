@@ -911,3 +911,85 @@ input[type="text"]::placeholder {
   background-size: 200% 100% !important;
   animation: skeleton-loading 1.5s infinite linear !important;
 }
+
+/* ================================================================
+   RE-DOWNLOAD / modal action buttons (broad catch-all)
+   ================================================================ */
+
+/* Any button inside a modal that isn't the close X */
+.modal-content button:not(.modal-close):not(.close-modal):not(.info-close),
+.info-modal button:not(.modal-close):not(.close-modal):not(.info-close),
+.confirm-modal button:not(.modal-close):not(.close-modal):not(.info-close),
+#modalContent button:not(.modal-close):not(.close-modal):not(.info-close),
+#infoModal button:not(.modal-close):not(.close-modal):not(.info-close),
+.media-card button:not(.close-card),
+.redownload-btn,
+.re-download-btn,
+.download-again-btn,
+.modal-redownload-btn,
+.action-btn,
+.primary-action-btn,
+.modal-btn,
+.modal-action-btn {
+  position: relative;
+  background: linear-gradient(135deg,
+              rgba(var(--primary-rgb), 0.92) 0%,
+              rgba(175, 82, 222, 0.92) 100%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  border-radius: 16px !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.6px !important;
+  text-transform: uppercase !important;
+  padding: 16px !important;
+  width: 100%;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.18) inset,
+    0 10px 30px rgba(var(--primary-rgb), 0.38),
+    0 4px 10px rgba(var(--primary-rgb), 0.22) !important;
+  transition: filter 0.18s cubic-bezier(0.32, 0.72, 0, 1),
+              box-shadow 0.18s cubic-bezier(0.32, 0.72, 0, 1) !important;
+  transform: none !important;
+  cursor: pointer;
+}
+
+/* Specular sheen on top half */
+.modal-content button:not(.modal-close):not(.close-modal):not(.info-close)::before,
+.info-modal button:not(.modal-close):not(.close-modal):not(.info-close)::before,
+#modalContent button:not(.modal-close):not(.close-modal):not(.info-close)::before,
+.media-card button:not(.close-card)::before,
+.redownload-btn::before,
+.re-download-btn::before,
+.action-btn::before,
+.modal-btn::before,
+.modal-action-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg,
+              rgba(255, 255, 255, 0.28) 0%,
+              rgba(255, 255, 255, 0.06) 40%,
+              rgba(255, 255, 255, 0) 60%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Press state — no transform, no flicker */
+.modal-content button:not(.modal-close):not(.close-modal):not(.info-close):active,
+.info-modal button:not(.modal-close):not(.close-modal):not(.info-close):active,
+#modalContent button:not(.modal-close):not(.close-modal):not(.info-close):active,
+.media-card button:not(.close-card):active,
+.redownload-btn:active,
+.re-download-btn:active,
+.action-btn:active,
+.modal-btn:active,
+.modal-action-btn:active {
+  filter: brightness(0.92);
+  transition-duration: 0.08s !important;
+}
