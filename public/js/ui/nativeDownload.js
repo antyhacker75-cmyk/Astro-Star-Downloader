@@ -29,6 +29,22 @@ export function cancelCurrentDownload() {
 // Expose globally so the progress toast cancel button can call it
 window._astrostarCancelDownload = cancelCurrentDownload;
 
+/**
+ * Push real download progress to the Android foreground-service notification.
+ * The native side renders a determinate progress bar + percentage.
+ */
+function updateNativeNotification(downloaded, total, speed) {
+  try {
+    const bridge = window.AstroStarMainBridge;
+    if (!bridge || typeof bridge.updateDownloadProgress !== "function") return;
+    bridge.updateDownloadProgress(
+      Math.max(0, downloaded | 0),
+      Math.max(0, total | 0),
+      speed || null,
+    );
+  } catch (_) {}
+}
+
 export async function startNativeDownload(
   url,
   type,
@@ -186,6 +202,8 @@ export async function startNativeDownload(
       }
       const currentPct = Math.min(95, Math.round(simProgress));
       updateProgress(currentPct, "Downloading...");
+      // NOTE: we deliberately DO NOT push simulated progress to the
+      // system notification — only real byte counts go there.
     }, 160);
 
     // Remove any existing listeners first to avoid double-firing
@@ -216,6 +234,13 @@ export async function startNativeDownload(
             }
 
             updateProgress(Math.min(95, percentage), "Downloading...");
+
+            // 🔔 Push real bytes + total to the system notification
+            updateNativeNotification(
+              progress.bytesWritten || 0,
+              progress.contentLength || 0,
+              null,
+            );
           },
         );
       } catch (e) {
