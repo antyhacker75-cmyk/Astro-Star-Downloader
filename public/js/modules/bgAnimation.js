@@ -141,7 +141,7 @@ class AmbientOrb {
   }
 }
 
-/* ==================== FIREFLY (NEW) ==================== */
+/* ==================== FIREFLY ==================== */
 class Firefly {
   constructor(initial = false) {
     this.x = Math.random() * width;
