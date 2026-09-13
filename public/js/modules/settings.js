@@ -1132,4 +1132,31 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// ============================================================
+// SOUND PACK PREVIEW
+// ============================================================
+const soundPackMenuEl = document.getElementById("soundPackMenu");
+if (soundPackMenuEl) {
+  soundPackMenuEl.querySelectorAll(".dropdown-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      const pack = item.getAttribute("data-value");
+      let file = "./chime-default.wav";
+      if (pack === "soft") file = "./chime-soft.wav";
+      else if (pack === "arcade") file = "./chime-arcade.wav";
+
+      try {
+        const a = new Audio(file);
+        a.volume = 1.0;
+        a.play().catch(() => {
+          const fallback = new Audio("./chime.wav");
+          fallback.volume = 1.0;
+          fallback.play().catch(() => {});
+        });
+      } catch (e) {
+        console.warn("Sound preview failed:", e);
+      }
+    });
+  });
+}
+
 syncAllSettingsToNative();
