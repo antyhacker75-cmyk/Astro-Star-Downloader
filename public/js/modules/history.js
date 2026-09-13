@@ -1,4 +1,4 @@
-// history.js — history CRUD, callbacks, auto-clear, PERSISTENT PUBLIC FILE
+// history.js — history CRUD, callbacks, auto-clear, persistent public file
 import { translations } from "../i18n/index.js";
 import { getVideoThumbnail, Filesystem, cleanUrl } from "../utils/index.js";
 import { Directory, Encoding } from "@capacitor/filesystem";
@@ -19,7 +19,7 @@ import {
 
 /* ================================================================
    PERSISTENT HISTORY FILE
-   Public path: /storage/emulated/0/Documents/AstroStar/history.json
+   Public path on Android: /storage/emulated/0/Documents/AstroStar/history.json
    ================================================================ */
 
 const HISTORY_KEY       = "astrostar_history";
@@ -79,10 +79,10 @@ function writeHistoryLocal(history) {
 }
 
 /* ================================================================
-   SILENT BOOTSTRAP
-   Runs once when this module is imported. Merges the persistent
-   file into localStorage so app.js's existing readHistory() sees it.
-   app.js does NOT need to be changed.
+   SELF-BOOTSTRAP
+   Runs as soon as this module is imported. Merges history.json into
+   localStorage so app.js's existing readHistory() sees it. app.js
+   does NOT need to be modified.
    ================================================================ */
 
 let bootstrapPromise = (async () => {
@@ -104,13 +104,12 @@ let bootstrapPromise = (async () => {
   writeHistoryLocal(merged);
 })();
 
-/** Optional export if you ever want to await the bootstrap manually. */
 export function historyReady() {
   return bootstrapPromise;
 }
 
 /* ================================================================
-   EXISTING UI HANDLERS (unchanged, now also write persistent file)
+   EXISTING UI HANDLERS
    ================================================================ */
 
 editHistoryBtn?.addEventListener("click", () => {
@@ -199,7 +198,7 @@ export async function onHistoryDeleteClick(url) {
 }
 
 /* ================================================================
-   FILE SAVED EVENT — unchanged behaviour, plus persistent write
+   FILE SAVED EVENT
    ================================================================ */
 
 window.addEventListener("astrostar_file_saved", async (e) => {
@@ -346,7 +345,7 @@ export function saveToHistory(result, url) {
 }
 
 /* ================================================================
-   Auto-Clear (unchanged)
+   Auto-Clear Old History
    ================================================================ */
 
 export async function autoClearOldHistory() {
