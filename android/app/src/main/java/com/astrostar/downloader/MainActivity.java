@@ -157,11 +157,18 @@ public class MainActivity extends BridgeActivity {
             }
         }
 
+        // ========================================================
+        // DOWNLOAD FOREGROUND SERVICE  (with progress bar + %)
+        // ========================================================
+
+        /** Start the foreground service with an indeterminate bar. */
         @JavascriptInterface
         public void startDownloadService(String title) {
             try {
                 Intent intent = new Intent(MainActivity.this, DownloadForegroundService.class);
-                intent.putExtra("title", title != null ? title : "Downloading Media...");
+                intent.setAction(DownloadForegroundService.ACTION_START);
+                intent.putExtra(DownloadForegroundService.EXTRA_TITLE,
+                        title != null ? title : "Downloading Media...");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     startForegroundService(intent);
                 } else {
@@ -172,11 +179,31 @@ public class MainActivity extends BridgeActivity {
             }
         }
 
+        /**
+         * NEW — Called from JS on every progress tick.
+         * This is what actually updates the progress bar and percentage
+         * in the notification.
+         *
+         * @param downloaded bytes downloaded so far
+         * @param total      total bytes (0 if unknown)
+         * @param speed      optional speed string like "1.2 MB/s" (may be null)
+         */
+        @JavascriptInterface
+        public void updateDownloadProgress(long downloaded, long total, String speed) {
+            try {
+                DownloadForegroundService.pushProgress(
+                        MainActivity.this, downloaded, total, speed);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         @JavascriptInterface
         public void stopDownloadService() {
             try {
                 Intent i = new Intent(MainActivity.this, DownloadForegroundService.class);
-                stopService(i);
+                i.setAction(DownloadForegroundService.ACTION_STOP);
+                startService(i);
             } catch (Exception e) {
                 e.printStackTrace();
             }
