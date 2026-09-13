@@ -1,168 +1,358 @@
-// nav-pill.js — iOS 26 Liquid Glass sliding pill for the bottom nav.
-// Standalone. Does not import anything. If it fails, the nav still works.
+// Astro Star - Bottom Navigation Sliding Pill
+// Accurate, smooth and responsive navigation pill
 
 (function () {
-  "use strict";
+    "use strict";
 
-  var PILL_CLASS = "nav-sliding-pill";
-  var MAX_TRIES = 20;
-  var tries = 0;
+    const PILL_CLASS = "nav-sliding-pill";
 
-  // How far to pull the pill inward from the nav item's bounding box.
-  // Increase INSET_X for a narrower pill, INSET_Y for a shorter one.
-  var INSET_X = 6;
-  var INSET_Y = 6;
+    let nav = null;
+    let items = [];
+    let pill = null;
 
-  // Optional extra lift off the top/bottom of the nav bar.
-  var OFFSET_Y = 0;
+    let resizeTimer = null;
+    let mutationTimer = null;
 
-  function findNavGroup() {
-    var all = document.querySelectorAll(".nav-item");
-    if (!all.length) return null;
+    // Pill spacing from the actual navigation item
+    const INSET_X = 8;
+    const INSET_Y = 7;
 
-    var groups = new Map();
-    Array.prototype.forEach.call(all, function (el) {
-      var p = el.parentElement;
-      if (!p) return;
-      if (!groups.has(p)) groups.set(p, []);
-      groups.get(p).push(el);
-    });
+    function findNavGroup() {
+        const all = document.querySelectorAll(".nav-item");
 
-    var bestParent = null;
-    var bestGroup = [];
-    groups.forEach(function (group, parent) {
-      if (group.length > bestGroup.length) {
-        bestGroup = group;
-        bestParent = parent;
-      }
-    });
+        if (!all.length) {
+            return null;
+        }
 
-    if (!bestParent || bestGroup.length < 2) return null;
-    return { nav: bestParent, items: bestGroup };
-  }
+        const groups = new Map();
 
-  function init() {
-    var found = findNavGroup();
-    if (!found) {
-      if (++tries < MAX_TRIES) setTimeout(init, 300);
-      return;
+        Array.prototype.forEach.call(all, function (item) {
+            const parent = item.parentElement;
+
+            if (!parent) {
+                return;
+            }
+
+            if (!groups.has(parent)) {
+                groups.set(parent, []);
+            }
+
+            groups.get(parent).push(item);
+        });
+
+        let bestParent = null;
+        let bestGroup = [];
+
+        groups.forEach(function (group, parent) {
+            if (group.length > bestGroup.length) {
+                bestGroup = group;
+                bestParent = parent;
+            }
+        });
+
+        if (!bestParent || bestGroup.length < 2) {
+            return null;
+        }
+
+        return {
+            nav: bestParent,
+            items: bestGroup
+        };
     }
 
-    var nav = found.nav;
-    var items = found.items;
+    function createPill() {
+        const oldPill = nav.querySelector("." + PILL_CLASS);
 
-    var navCS = window.getComputedStyle(nav);
-    if (navCS.position === "static") {
-      nav.style.position = "relative";
+        if (oldPill) {
+            oldPill.remove();
+        }
+
+        pill = document.createElement("div");
+
+        pill.className = PILL_CLASS;
+
+        pill.setAttribute("aria-hidden", "true");
+
+        nav.appendChild(pill);
     }
 
-    var pill = document.createElement("div");
-    pill.className = PILL_CLASS + " snap";
-    nav.appendChild(pill);
+    function getActiveItem() {
+        return nav.querySelector(".nav-item.active");
+    }
 
     function movePill(animate) {
-      var active = nav.querySelector(".nav-item.active");
-      if (!active) {
-        pill.classList.remove("ready");
-        return;
-      }
+        if (!nav || !pill) {
+            return;
+        }
 
-      var navRect = nav.getBoundingClientRect();
-      var rect = active.getBoundingClientRect();
+        const active = getActiveItem();
 
-      if (rect.width === 0 || rect.height === 0) return;
+        if (!active) {
+            pill.classList.remove("ready");
+            return;
+        }
 
-      if (animate) {
-        pill.classList.remove("snap");
-      } else {
-        pill.classList.add("snap");
-      }
+        const navRect = nav.getBoundingClientRect();
+        const itemRect = active.getBoundingClientRect();
 
-      // Compute the inset position and size
-      var w = Math.max(0, rect.width - INSET_X * 2);
-      var h = Math.max(0, rect.height - INSET_Y * 2);
+        if (
+            navRect.width <= 0 ||
+            navRect.height <= 0 ||
+            itemRect.width <= 0 ||
+            itemRect.height <= 0
+        ) {
+            return;
+        }
 
-      var x = rect.left - navRect.left + INSET_X;
-      var y = rect.top - navRect.top + INSET_Y + OFFSET_Y;
+        /*
+         * Calculate the pill from the CENTER
+         * of the active navigation item.
+         *
+         * This is more accurate than simply using
+         * rect.left / rect.top because the item can
+         * have different icon/text dimensions.
+         */
 
-      pill.style.width = w + "px";
-      pill.style.height = h + "px";
-      pill.style.transform = "translate(" + x + "px, " + y + "px)";
-      pill.classList.add("ready");
+        const itemCenterX =
+            itemRect.left -
+            navRect.left +
+            itemRect.width / 2;
+
+        const itemCenterY =
+            itemRect.top -
+            navRect.top +
+            itemRect.height / 2;
+
+        const pillWidth = Math.max(
+            0,
+            itemRect.width - INSET_X * 2
+        );
+
+        const pillHeight = Math.max(
+            0,
+            itemRect.height - INSET_Y * 2
+        );
+
+        const x =
+            itemCenterX -
+            pillWidth / 2;
+
+        const y =
+            itemCenterY -
+            pillHeight / 2;
+
+        if (animate) {
+            pill.classList.remove("snap");
+        } else {
+            pill.classList.add("snap");
+        }
+
+        pill.style.width = pillWidth + "px";
+        pill.style.height = pillHeight + "px";
+
+        pill.style.transform =
+            "translate3d(" +
+            x +
+            "px, " +
+            y +
+            "px, 0)";
+
+        pill.classList.add("ready");
+
+        if (!animate) {
+            requestAnimationFrame(function () {
+                pill.classList.remove("snap");
+            });
+        }
     }
 
-    requestAnimationFrame(function () {
-      movePill(false);
-      requestAnimationFrame(function () {
+    function updateImmediately() {
         requestAnimationFrame(function () {
-          pill.classList.remove("snap");
+            requestAnimationFrame(function () {
+                movePill(false);
+            });
         });
-      });
-    });
+    }
 
-    var observer = new MutationObserver(function (mutations) {
-      var shouldMove = false;
-      mutations.forEach(function (m) {
-        if (m.type === "attributes" && m.attributeName === "class") {
-          shouldMove = true;
-        }
-      });
-      if (shouldMove) movePill(true);
-    });
+    function scheduleMove() {
+        clearTimeout(mutationTimer);
 
-    items.forEach(function (item) {
-      observer.observe(item, {
-        attributes: true,
-        attributeFilter: ["class"]
-      });
-    });
-
-    items.forEach(function (item) {
-      item.addEventListener("click", function () {
-        [30, 120, 350].forEach(function (delay) {
-          setTimeout(function () {
+        mutationTimer = setTimeout(function () {
             movePill(true);
-          }, delay);
+        }, 10);
+    }
+
+    function init() {
+        const found = findNavGroup();
+
+        if (!found) {
+            setTimeout(init, 300);
+            return;
+        }
+
+        nav = found.nav;
+        items = found.items;
+
+        const navStyle = window.getComputedStyle(nav);
+
+        if (navStyle.position === "static") {
+            nav.style.position = "relative";
+        }
+
+        /*
+         * Create the pill only once.
+         */
+        createPill();
+
+        /*
+         * Initial position.
+         */
+        updateImmediately();
+
+        /*
+         * Watch the active class.
+         */
+        const observer = new MutationObserver(function (mutations) {
+            let changed = false;
+
+            mutations.forEach(function (mutation) {
+                if (
+                    mutation.type === "attributes" &&
+                    mutation.attributeName === "class"
+                ) {
+                    changed = true;
+                }
+            });
+
+            if (changed) {
+                scheduleMove();
+            }
         });
-      });
-    });
 
-    var resizeTimer = null;
-    window.addEventListener("resize", function () {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(function () {
-        movePill(false);
-      }, 100);
-    });
-
-    document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState === "visible") {
-        movePill(false);
-      }
-    });
-
-    // Debug helper — call window.AstroStarNavPill.debug() in DevTools
-    window.AstroStarNavPill = {
-      debug: function () {
-        var active = nav.querySelector(".nav-item.active");
-        if (!active) return console.log("[nav-pill] no active item");
-        var nr = nav.getBoundingClientRect();
-        var r = active.getBoundingClientRect();
-        console.log("[nav-pill] nav rect:", nr);
-        console.log("[nav-pill] active item rect:", r);
-        console.log("[nav-pill] pill style:", {
-          width: pill.style.width,
-          height: pill.style.height,
-          transform: pill.style.transform
+        items.forEach(function (item) {
+            observer.observe(item, {
+                attributes: true,
+                attributeFilter: ["class"]
+            });
         });
-      },
-      pill: pill
-    };
-  }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+        /*
+         * Click handling.
+         *
+         * No multiple 30/120/350ms hacks.
+         */
+        items.forEach(function (item) {
+            item.addEventListener("click", function () {
+                requestAnimationFrame(function () {
+                    movePill(true);
+                });
+
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(function () {
+                        movePill(true);
+                    });
+                });
+            });
+        });
+
+        /*
+         * Window resize.
+         */
+        window.addEventListener("resize", function () {
+            clearTimeout(resizeTimer);
+
+            resizeTimer = setTimeout(function () {
+                movePill(false);
+            }, 100);
+        });
+
+        /*
+         * App becomes visible again.
+         */
+        document.addEventListener("visibilitychange", function () {
+            if (document.visibilityState === "visible") {
+                updateImmediately();
+            }
+        });
+
+        /*
+         * Detect navigation size/layout changes.
+         */
+        if ("ResizeObserver" in window) {
+            const resizeObserver = new ResizeObserver(function () {
+                movePill(false);
+            });
+
+            resizeObserver.observe(nav);
+
+            items.forEach(function (item) {
+                resizeObserver.observe(item);
+            });
+        }
+
+        /*
+         * Debug helper.
+         */
+        window.AstroStarNavPill = {
+
+            move: function () {
+                movePill(true);
+            },
+
+            snap: function () {
+                movePill(false);
+            },
+
+            debug: function () {
+                const active = getActiveItem();
+
+                if (!active) {
+                    console.log(
+                        "[AstroStarNavPill] No active navigation item."
+                    );
+                    return;
+                }
+
+                const navRect =
+                    nav.getBoundingClientRect();
+
+                const itemRect =
+                    active.getBoundingClientRect();
+
+                console.log(
+                    "[AstroStarNavPill] Navigation:",
+                    navRect
+                );
+
+                console.log(
+                    "[AstroStarNavPill] Active item:",
+                    itemRect
+                );
+
+                console.log(
+                    "[AstroStarNavPill] Pill:",
+                    {
+                        width: pill.style.width,
+                        height: pill.style.height,
+                        transform: pill.style.transform
+                    }
+                );
+            },
+
+            pill: pill
+        };
+    }
+
+    /*
+     * Start after DOM is ready.
+     */
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            init
+        );
+    } else {
+        init();
+    }
+
 })();
