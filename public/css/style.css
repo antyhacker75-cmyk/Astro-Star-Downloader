@@ -2230,8 +2230,10 @@ body.dark-theme .action-item:active,
 
 /* ============================================================
    GLASSMORPHISM PRESETS
+   NOTE: .settings-list is intentionally EXCLUDED to prevent
+   Android WebView click/pointer-event bugs caused by
+   backdrop-filter on a parent container.
    ============================================================ */
-body.glass-off .settings-list,
 body.glass-off .settings-menu-item,
 body.glass-off .custom-toast,
 body.glass-off .media-card,
@@ -2245,22 +2247,18 @@ body.glass-off .download-progress-toast {
   -webkit-backdrop-filter: none !important;
   background-color: var(--surface) !important;
 }
-body.glass-off .bottom-nav,
-body.glass-off .settings-list {
+body.glass-off .bottom-nav {
   background-color: var(--bg-color) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
 body.glass-off .modal-content,
-body.glass-off .confirm-modal,
-body.glass-off .quick-action-sheet,
-body.glass-off .action-sheet {
+body.glass-off .confirm-modal {
   background-color: var(--bg-color) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
 
-body.glass-subtle .settings-list,
 body.glass-subtle .settings-menu-item,
 body.glass-subtle .custom-toast,
 body.glass-subtle .media-card,
@@ -2285,7 +2283,6 @@ body.glass-subtle .settings-item {
   border-bottom-color: rgba(var(--primary-rgb), 0.12) !important;
 }
 
-body.glass-deep .settings-list,
 body.glass-deep .settings-menu-item,
 body.glass-deep .custom-toast,
 body.glass-deep .media-card,
@@ -2311,7 +2308,6 @@ body.glass-deep .bottom-nav {
 body.glass-deep .settings-item {
   border-bottom: 1px solid rgba(var(--primary-rgb), 0.12) !important;
 }
-[data-theme="dark"] body.glass-deep .settings-list,
 [data-theme="dark"] body.glass-deep .settings-menu-item,
 [data-theme="dark"] body.glass-deep .custom-toast,
 [data-theme="dark"] body.glass-deep .media-card,
